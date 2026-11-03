@@ -37,17 +37,20 @@ dex-sm check
 
 ## 转换环境
 
-按 [Dex-Video2Robot](https://github.com/luckylhf/Dex-Video2Robot) 的文档安装 GMR 转换依赖。经核对的工作树 HEAD 为 `6f848794a1bac6e656c3baa8f9fbcc62600fc781`；本次使用的转换脚本和骨架加载器没有未提交修改。克隆后应核对对应接口，避免使用同名旧版实现。
+内置 Dex v7 支持 BONES-SEED 的 SOMA Uniform BVH 和 LAFAN1 原始 BVH。求解使用 CPU NumPy / SciPy / MuJoCo，不需要 CUDA、PyTorch 或 mjlab；macOS 也可做转换。训练/特征构建的依赖仍按上节安装。为保留历史回放契约，基础环境的版本固定项不因 v7 接入而修改。
 
 ```bash
-export DEX_GMR_ROOT=/path/to/Dex-Video2Robot/Dex-GMR
-export DEX_MIMIC_ROOT=/path/to/Dex-Video2Robot/Dex-Mimic
-export DEX_ASSETS=/path/to/this-repo/assets/dex_evt
-export PYTHONPATH=/path/to/this-repo/src
-python -m dex_supermimic.cli data convert --manifest /path/to/sources.jsonl --out /path/to/processed
+python -m pip install -e '.[convert]'
+export DEX_SUPERMIMIC_ROOT="$PWD"
+# 可省略：默认就是仓库根目录下 assets/dex_evt
+export DEX_ASSETS="$PWD/assets/dex_evt"
+dex-sm data convert --dataset bones_seed --manifest data/bones_seed/sources.jsonl --out data/bones_seed/processed_v7 --workers 1
+dex-sm data convert --dataset lafan1 --manifest data/lafan1/sources.jsonl --out data/lafan1/processed_v7 --workers 1
 ```
 
-所需接口：`load_soma_file`、`retarget_frames(..., ik_recovery='table-retry')`、`pkl_to_npz.convert_single`、`check_motion.validate_motion`。转换器必须能写出带关节名、模型 SHA、四元数约定与 IK 审计的文件。旧版 GMR 若缺这些接口，须升级到匹配版本；不能只给旧 PKL 补字段后视为完成重定向。
+必须准备 `model.json`、`mjcf/dex_29.xml`、对应网格及 `urdf/dex_29.urdf`；转换器校验模型哈希与关节顺序。人体校准资源随本包打包，不依赖维护者机器上的校准路径；机器人资产仍需单独准备。无需设置历史 `DEX_GMR_ROOT`、`DEX_MIMIC_ROOT`，也不从外部同名脚本导入转换函数。
+
+v7 的独立预览、训练 NPZ 协议、缓存迁移与验证环境见 [转换说明](RETARGET_V7.md)。安装不会自动下载数据或机器人资产，不会启动训练。
 
 ## ROS 环境
 

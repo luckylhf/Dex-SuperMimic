@@ -27,6 +27,7 @@ external/**
 *.onnx
 *.mjb
 *.bvh
+!src/dex_supermimic/data/v7/reference/soma_zero.bvh
 *.npz
 *.pkl
 *.mp4

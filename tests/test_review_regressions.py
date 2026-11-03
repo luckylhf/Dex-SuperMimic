@@ -13,12 +13,16 @@ from dex_supermimic.training.lr_schedule import PolicyLRSchedule
 
 
 @pytest.fixture
-def cached(tmp_path):
-    raw=tmp_path/'motion.bvh';raw.write_text('existing source bytes')
+def cached(tmp_path, monkeypatch):
+    raw=tmp_path/'motion.bvh';raw.write_text('ROOT Hips\nJOINT LeftShin\nJOINT RightShin\nJOINT LeftHandIndex1\nJOINT RightHandIndex1\nMOTION\n')
+    identity={'backend':'dex_v7','dataset':'bones_seed'}
+    identity['fingerprint']=row_sha(identity)
+    monkeypatch.setattr('dex_supermimic.data.prepare.conversion_identity',lambda dataset,**kwargs:dict(identity))
     artifact=tmp_path/'clip.npz';artifact.write_bytes(b'already converted output')
     row=dict(id='clip',source=str(raw),actor='actor_a',sampling_group='dance',anchor=True,evaluation_only=False)
     record=dict(row,source_sha256=sha(raw),output=str(artifact),output_sha256=sha(artifact),
-                frames=100,grade='A_kinematic_candidate',status='converted',train_eligible=True,split='train')
+                frames=100,grade='A_kinematic_candidate',status='converted',train_eligible=True,split='train',
+                converter='dex_v7',resolved_dataset='bones_seed',converter_fingerprint=identity['fingerprint'],converter_identity=identity)
     atomic(tmp_path/'records/clip.json',record)
     return tmp_path,row,artifact
 

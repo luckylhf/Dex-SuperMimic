@@ -12,6 +12,7 @@ import sys
 import traceback
 from dex_supermimic.common import atomic, sha, stamp
 from dex_supermimic.paths import ASSETS
+from .retarget import resolve_dataset, conversion_identity, validate_record_identity, DATASETS
 
 TARGETS = {'dance': .40, 'locomotion': .25, 'stationary_upper': .25, 'dynamic': .10}
 
@@ -19,12 +20,16 @@ TARGETS = {'dance': .40, 'locomotion': .25, 'stationary_upper': .25, 'dynamic': 
 # conversion evidence, and never use an earlier label for current membership.
 DERIVED_FIELDS = {'source_sha256','output','output_sha256','frames','grade','quality',
     'status','error','ik_audit','train_eligible','dynamic_status','started_at','finished_at',
-    'source_manifest_row','source_row_sha256','metadata_updated_at'}
+    'source_manifest_row','source_row_sha256','metadata_updated_at',
+    'converter','converter_fingerprint','converter_identity','resolved_dataset',
+    'conversion_audit','audit_path','audit_sha256','pkl','pkl_sha256'}
 
 def source_row(row):
     row = dict(row)
     reserved = DERIVED_FIELDS.intersection(row)
     if reserved: raise ValueError('Derived fields are not source metadata: '+str(sorted(reserved)))
+    row.setdefault('dataset', 'auto')
+    if row['dataset'] not in ('auto', *DATASETS): raise ValueError('Unknown dataset: '+str(row['dataset']))
     for key in ('anchor','evaluation_only'):
         row.setdefault(key, False)
         if not isinstance(row[key], bool): raise ValueError(key+' must be a JSON boolean')
@@ -63,10 +68,16 @@ def load_records(directory):
 
 def training_rows(records):
     rows = []
+    identities = {}
     for r in records:
         if r.get('grade') != 'A_kinematic_candidate': continue
         if r.get('evaluation_only'):
             raise ValueError('External evaluation motion marked as training: '+r['id'])
+        dataset = r.get('resolved_dataset')
+        if r.get('converter') != 'dex_v7' or dataset not in DATASETS:
+            raise ValueError('Legacy conversion must be regenerated from BVH with v7: '+r['id'])
+        if dataset not in identities: identities[dataset] = conversion_identity(dataset, include_runtime=False)
+        validate_record_identity(r, identities[dataset])
         rows.append(dict(r, split='train'))
     return rows
 
@@ -90,12 +101,16 @@ def sampling_weights(rows):
 def _convert(task):
     row, output = task
     row = source_row(row)
+    dataset = resolve_dataset(row['source'], row['dataset'])
+    identity = conversion_identity(dataset)
     output = Path(output)
     record = output/'records'/f"{row['id']}.json"
     if record.exists():
         old = json.loads(record.read_text())
         if old.get('source_sha256') != sha(row['source']): raise ValueError('Changed source: '+row['id'])
         if old.get('output') and sha(old['output']) != old['output_sha256']: raise ValueError('Changed output: '+row['id'])
+        if old.get('converter') != 'dex_v7' or old.get('converter_fingerprint') != identity['fingerprint']:
+            raise ValueError('Legacy or stale conversion; use a new output directory for v7: '+row['id'])
         refreshed = with_metadata(old, row)
         if refreshed != old:
             refreshed['metadata_updated_at'] = stamp()
@@ -104,25 +119,26 @@ def _convert(task):
     work = output/'work'/row['id']
     work.mkdir(parents=True, exist_ok=False)
     rec = dict(row, source_sha256=sha(row['source']), started_at=stamp(),
-               dynamic_status='not_tested_by_controller', split='train')
+               dynamic_status='not_tested_by_controller', split='train', converter='dex_v7',
+               converter_fingerprint=identity['fingerprint'], converter_identity=identity,
+               resolved_dataset=dataset)
     try:
-        from .retarget_soma import convert
-        from .quality import quality, compact
-        mimic = Path(os.environ['DEX_MIMIC_ROOT']).expanduser().resolve()
-        sys.path.insert(0, str(mimic/'scripts'))
-        from pkl_to_npz import convert_single, ROBOT_MJCF
-        from check_motion import validate_motion
-        if sha(ROBOT_MJCF['dex_evt']) != sha(ASSETS/'mjcf/dex_29.xml'):
-            raise ValueError('Dex-Mimic conversion model differs from training assets')
-        pkl, npz = work/'motion.pkl', work/'motion.npz'
-        convert(row['source'], pkl)
-        convert_single(str(pkl), str(npz), 50, 'dex_evt', ROBOT_MJCF['dex_evt'])
-        validate_motion(npz)
-        result = quality(npz, pkl.with_suffix('.ik.json'))
+        from .retarget import convert
+        from .v7.audit import audit
+        from .quality_v7 import quality
+        from .training_format import export_training_npz
+        pkl = work/'motion.pkl'
+        meta = convert(row['source'], pkl, dataset=dataset, fps=50.)
+        report = audit(pkl)
+        result = quality(pkl, meta, report)
         target = output/'motions'/f"{row['id']}.npz"
-        frames = compact(npz, target)
+        frames = export_training_npz(pkl, target, identity)
+        audit_path = pkl.with_suffix('.check.json')
         rec.update(status='converted', quality=result, frames=frames, output=str(target),
-                   output_sha256=sha(target), ik_audit=json.loads(pkl.with_suffix('.ik.json').read_text()),
+                   output_sha256=sha(target), pkl=str(pkl), pkl_sha256=sha(pkl),
+                   audit_path=str(audit_path), audit_sha256=sha(audit_path),
+                   conversion_audit=dict(path=str(audit_path),sha256=sha(audit_path),
+                                         generation_mode=meta['generation_mode'],cpu_only=meta['cpu_only']),
                    grade='B_needs_repair' if result['flags'] else 'A_kinematic_candidate',
                    train_eligible=not result['flags'])
     except Exception:
@@ -133,7 +149,15 @@ def _convert(task):
     return rec
 
 def convert_dataset(args):
-    rows = [source_row(json.loads(line)) for line in Path(args.manifest).read_text().splitlines() if line.strip()]
+    raw = [json.loads(line) for line in Path(args.manifest).read_text().splitlines() if line.strip()]
+    requested = getattr(args, 'dataset', 'auto')
+    if requested != 'auto':
+        for row in raw:
+            if row.get('dataset', 'auto') not in ('auto', requested): raise ValueError('Manifest/CLI dataset mismatch')
+            row['dataset'] = requested
+    rows = [source_row(row) for row in raw]
+    if not rows: raise ValueError('Empty source manifest')
+    if args.workers < 1: raise ValueError('workers must be positive')
     seen = set()
     for row in rows:
         required = {'id', 'source', 'actor', 'sampling_group'}
@@ -144,6 +168,7 @@ def convert_dataset(args):
         path = Path(row['source']).expanduser()
         row['source'] = str((Path(args.manifest).resolve().parent/path).resolve() if not path.is_absolute() else path)
         if not Path(row['source']).is_file(): raise FileNotFoundError(row['source'])
+        resolve_dataset(row['source'], row['dataset'])
     out = Path(args.out).resolve()
     for folder in ('records','motions','work'): (out/folder).mkdir(parents=True, exist_ok=True)
     catalog = dict(status='converting',records={r['id']:row_sha(r) for r in rows},
@@ -243,7 +268,8 @@ def import_release(args):
 def main():
     p=argparse.ArgumentParser(description=__doc__); s=p.add_subparsers(dest='command',required=True)
     c=s.add_parser('convert');c.add_argument('--manifest',required=True);c.add_argument('--out',required=True)
-    c.add_argument('--workers',type=int,default=max(1,min(8,(os.cpu_count() or 2)//2)));c.set_defaults(fn=convert_dataset)
+    c.add_argument('--dataset',choices=['auto',*DATASETS],default='auto')
+    c.add_argument('--workers',type=int,default=1);c.set_defaults(fn=convert_dataset)
     b=s.add_parser('build');b.add_argument('--records',required=True);b.add_argument('--out',required=True)
     b.add_argument('--capacity',type=int,default=600000);b.add_argument('--device',default='cpu');b.add_argument('--threads',type=int,default=4);b.set_defaults(fn=build_release)
     i=s.add_parser('import');i.add_argument('--source',required=True);i.add_argument('--out',required=True)
