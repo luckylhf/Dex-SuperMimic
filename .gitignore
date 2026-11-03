@@ -31,6 +31,7 @@ external/**
 *.pkl
 *.mp4
 *.zip
+*.zip.sha256
 *.tar*
 
 # Copyrighted evaluation videos must remain local.
