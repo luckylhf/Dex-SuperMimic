@@ -1,0 +1,2 @@
+# Source revision used by the baseline. Install after the CUDA training environment.
+mjlab @ git+https://github.com/mujocolab/mjlab.git@8bb2bc9e187797689ec82c78c35019afd2fd0376

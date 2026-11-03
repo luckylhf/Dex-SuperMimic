@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-02",
+  "platform": "Linux x86_64",
+  "python": "3.11",
+  "isolated_venv": true,
+  "system_site_packages": false,
+  "torch_installed": false,
+  "mjlab_installed": false,
+  "dependency_index": "https://pypi.tuna.tsinghua.edu.cn/simple",
+  "versions": {
+    "numpy": "1.26.4",
+    "mujoco": "3.16.0",
+    "onnxruntime": "1.31.0"
+  },
+  "payload_files": 140,
+  "payload_bytes": 949843595,
+  "all_payload_sha256_verified": true,
+  "zip_crc_verified": true,
+  "external_old_files_used_only_for_result_comparison": true,
+  "cases": {
+    "gbtc": {
+      "completed": true,
+      "seconds": 18.92,
+      "exact_12341": true
+    },
+    "dance_boy": {
+      "completed": true,
+      "seconds": 80.2,
+      "exact_12341": true
+    },
+    "dance_girl_original_start": {
+      "completed": false,
+      "seconds": 165.58,
+      "exact_12341": true
+    }
+  }
+}

@@ -1,0 +1,317 @@
+{
+  "baseline_iteration": 12341,
+  "files": {
+    ".github/workflows/ci.yml": {
+      "bytes": 444,
+      "sha256": "29f7b41e0b5464b26dd3163e993e8eb7404ae722d19819df825754b4559cf5c2"
+    },
+    ".gitignore": {
+      "bytes": 428,
+      "sha256": "7bed614ee87f9e77752b34b9dc04f6ad28274854f8edd564f7f0370cafe70596"
+    },
+    "LICENSE": {
+      "bytes": 1070,
+      "sha256": "a7d4f11fa34dfcd7d065bff7984bffd6599fd01a4320f8dc6d20254c95930e1c"
+    },
+    "LICENSES/OpenAtom-Hardware-1.0.txt": {
+      "bytes": 24731,
+      "sha256": "467fde9cb4e129c0c974f63400e45e8747f3950a4a74fc1a37b5f8220aa9cfe4"
+    },
+    "LICENSES/mjlab-Apache-2.0.txt": {
+      "bytes": 11352,
+      "sha256": "8ca04d9dbbccd20f0f1842fb33e13949f9e57064b150dad36af8e7a751ca3321"
+    },
+    "README.md": {
+      "bytes": 7600,
+      "sha256": "cedb422f736d0ad47370e929aabb96c6086b74acca47aea986550e3fe26a6a5b"
+    },
+    "THIRD_PARTY.md": {
+      "bytes": 1485,
+      "sha256": "77bbb38ef4b4b880f794b36f88af5285ff89070385c23e691d23a39517de637b"
+    },
+    "assets/dex_evt/README.md": {
+      "bytes": 1077,
+      "sha256": "8883513924448fc97e658c728d832f289f8e3a9f6616e1383b7db1cb9ead008d"
+    },
+    "checkpoints/12341/README.md": {
+      "bytes": 1162,
+      "sha256": "c58478b1a87a31dd554a7a0f359e2753ebb6524dd649115564cc3df2b3ab7511"
+    },
+    "configs/baseline_12341.json": {
+      "bytes": 4076,
+      "sha256": "b6ee97b730295cda2ce6575bec00aa2b067d19955cf2549e0ef70dec9f300dbf"
+    },
+    "configs/train_baseline.json": {
+      "bytes": 1422,
+      "sha256": "266908170bf2f33264e52b9c20fe9bea95acf77699379642ca8de6ca0defd4d6"
+    },
+    "configs/train_feedback.json": {
+      "bytes": 1425,
+      "sha256": "a17fb103d7f952ce5bb3458272613183c379513776b31da0e46d78d183d7821b"
+    },
+    "configs/train_fresh.json": {
+      "bytes": 1426,
+      "sha256": "1f4ccafc47362ed7eb821daf03e7ba6fbb8a1b315b9b5f441ecb505875d6e9c4"
+    },
+    "data/README.md": {
+      "bytes": 3710,
+      "sha256": "fb4550d497c45239c1b1f42e0afa1a8c036437c6d5c34741199a84636b3f9027"
+    },
+    "data/bones_seed/README.md": {
+      "bytes": 1040,
+      "sha256": "f88cffe160807acb5b1a2a131b3a5f8cf886cdb9151007591185ef9bdccf01d6"
+    },
+    "data/evaluation/README.md": {
+      "bytes": 1370,
+      "sha256": "72870d7acb6b45baf792bec32ba7a5347fdeda805e39337588fb0baff2241850"
+    },
+    "data/lafan1/README.md": {
+      "bytes": 594,
+      "sha256": "1096354010b0b3c14a1c087b52796782ac7768c0d5928dd15b5e14e8a511e86c"
+    },
+    "docs/BASELINE.md": {
+      "bytes": 4679,
+      "sha256": "d84be8486477ef79fa48ff5f02758632ad678e3910aeaf392f70b958564cbd9e"
+    },
+    "docs/DEPLOYMENT.md": {
+      "bytes": 4767,
+      "sha256": "9b64fa4bc1db8369ab9e4727747750ccfafdf541ae8e6fced91caaaf9b3fbac1"
+    },
+    "docs/SETUP.md": {
+      "bytes": 3806,
+      "sha256": "bd7beba13e7ab90c87428ccadfe52d374ac09e5174f42325892b076eafc0d057"
+    },
+    "docs/VALIDATION.md": {
+      "bytes": 4017,
+      "sha256": "cd5a6ef3101bc8d4e60c3d816800b80f4b8fa14f32d00ee8ea7d0a75d509838e"
+    },
+    "docs/source_manifest.json": {
+      "bytes": 1777,
+      "sha256": "d8e4e76e07cd6f3a06df2a9bb9790abf87abaab7560059b99c84ffd1e8ead5fc"
+    },
+    "external/README.md": {
+      "bytes": 528,
+      "sha256": "8c96552dded5cb0457ac77ad1a57b9c2cad6fc953b9efd53c9e42e856cc82180"
+    },
+    "pyproject.toml": {
+      "bytes": 752,
+      "sha256": "c1157f1fa78d32b569880dda8bbb393572bec59ae4c936a624c2a22d9594ecba"
+    },
+    "requirements-mjlab.txt": {
+      "bytes": 177,
+      "sha256": "3937526214df14cb59cc1226b929d82504d286cce4203aa0f10fbb1fb0f41ec0"
+    },
+    "scripts/import_assets.py": {
+      "bytes": 1308,
+      "sha256": "e23caf82a55fce798414ae0325bdc78452d95ec4b3a3b0680ba0493d00a61b24"
+    },
+    "scripts/make_suite.py": {
+      "bytes": 1315,
+      "sha256": "6558536a6f93bad4e8aa72a4f9cfc4cfb55c47a272a6411f74a27f00d2d546ea"
+    },
+    "src/dex_supermimic/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "src/dex_supermimic/check.py": {
+      "bytes": 992,
+      "sha256": "5b242e1519e63913065ef4fb61c88c1e49440b4318a1a002c5849573006dab03"
+    },
+    "src/dex_supermimic/cli.py": {
+      "bytes": 1069,
+      "sha256": "193f1839ae7e74df47a82db5cbb701c42ed512226319803e8564cd5513b4db9f"
+    },
+    "src/dex_supermimic/common.py": {
+      "bytes": 592,
+      "sha256": "1744a685efc1b20d7f92f910af3b672fbbd45fdbc4d5b0bddf875beea3667e6a"
+    },
+    "src/dex_supermimic/data/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "src/dex_supermimic/data/bounded_motion.py": {
+      "bytes": 5395,
+      "sha256": "5b42b7383b0140c8cfe8dd28da3f3345c3466919a7d8cf9d8974371027456458"
+    },
+    "src/dex_supermimic/data/prepare.py": {
+      "bytes": 14143,
+      "sha256": "6d2f5c6f5f2ad8838d97557b37b8a2e3a63f35a3a22cfc2848a8221ddd7dc4f8"
+    },
+    "src/dex_supermimic/data/quality.py": {
+      "bytes": 4784,
+      "sha256": "f572297f82cbb542cecbfbb0299359b1adb859c6ca58446b999722c9cc7a5d78"
+    },
+    "src/dex_supermimic/data/retarget_soma.py": {
+      "bytes": 3740,
+      "sha256": "0d66134b9d9a81d7c3a8acc6701edf0d30988fbfc884f82c2fe9a889f7c047f0"
+    },
+    "src/dex_supermimic/deployment/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "src/dex_supermimic/deployment/build_bundle.py": {
+      "bytes": 7255,
+      "sha256": "f7a802b2070dfd8a617da352becb7aa5cc736cde3f7f0e64da6dba1b04738a5a"
+    },
+    "src/dex_supermimic/deployment/native_mujoco.py": {
+      "bytes": 7589,
+      "sha256": "84f956afec3eb48fe0bab41f8c16eb8ebda07df6e04f939709f38c123ab1e39d"
+    },
+    "src/dex_supermimic/deployment/ros_demo.py": {
+      "bytes": 9708,
+      "sha256": "b9e04f498968b50544324adfb44b16c37ca04f2fb6d2034d9b1e122646232fd0"
+    },
+    "src/dex_supermimic/deployment/run_ros_isolated.py": {
+      "bytes": 2243,
+      "sha256": "f190ffe2283b4e88d9cf4caf9b51212c5d56acad5ce7da29d4f3815537308b86"
+    },
+    "src/dex_supermimic/deployment/runtime.py": {
+      "bytes": 4369,
+      "sha256": "420657a754ac6971428ceead07f90d96d0f7bb148491ae27b719af1b57932da3"
+    },
+    "src/dex_supermimic/evaluation/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "src/dex_supermimic/evaluation/evaluate.py": {
+      "bytes": 7497,
+      "sha256": "4871d3802d576a54c56c7b4990e2776bae372d8f24190ca05b2ba64467dfbf4c"
+    },
+    "src/dex_supermimic/evaluation/render.py": {
+      "bytes": 12287,
+      "sha256": "0229e7bbe52a03b9a31fc714ff655cd2dda85328792ce167be756e0700b70b50"
+    },
+    "src/dex_supermimic/evaluation/worker.py": {
+      "bytes": 1780,
+      "sha256": "71c491c0d3d491cc560131b8bd89c32dad4125368c035e239c29c94a9fa22b76"
+    },
+    "src/dex_supermimic/paths.py": {
+      "bytes": 304,
+      "sha256": "6206cb5878f0aacc0ff5fd5b3ff67a130619d8a43cf10abfd4195c6bf8ea62dc"
+    },
+    "src/dex_supermimic/training/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "src/dex_supermimic/training/hooks.py": {
+      "bytes": 3168,
+      "sha256": "30d93bdd8b4b61a98a6e78f7cd85eaf80797afa0c0fecd73740816fea64d31c0"
+    },
+    "src/dex_supermimic/training/persistent_rotation.py": {
+      "bytes": 3639,
+      "sha256": "b796e2c11d5881d9daa1e5080c8a768fa107486bf0cc11231d530696a9ab945c"
+    },
+    "src/dex_supermimic/training/prefetch.py": {
+      "bytes": 2510,
+      "sha256": "ebce413daa4793037dd8d35150559f58689c1cc52d0966238ba9717e61cfe78d"
+    },
+    "src/dex_supermimic/training/rotation.py": {
+      "bytes": 3475,
+      "sha256": "8170b941eae5e5978b595f9586d4b12b6a944e4131fd83b0b1d55745e081bc16"
+    },
+    "src/dex_supermimic/training/rotation_async.py": {
+      "bytes": 4742,
+      "sha256": "0e7690955a295413cf4d4586473589f7874b12805d3fb281ec520b5355ea964d"
+    },
+    "src/dex_supermimic/training/telemetry.py": {
+      "bytes": 1333,
+      "sha256": "0e79bd06cd4b0ecc975c3632a1e0671072f7ee2eff2a130d5d278b0278d50de1"
+    },
+    "src/dex_supermimic/training/train.py": {
+      "bytes": 37100,
+      "sha256": "566153c69dbe366365afaf00b47c58f339f98ff1ef5f55beaee9fc2d29e90ad1"
+    },
+    "src/dex_supermimic/training/warm_start.py": {
+      "bytes": 1384,
+      "sha256": "a99f7534027816247e491174d3b334c0d3bb386d7bca16ca45df5074debb05ce"
+    },
+    "src/instanttrack/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "src/instanttrack/buffer.py": {
+      "bytes": 4443,
+      "sha256": "de0c2565ce061e34463e784011ec77c2e2988a2313ca11977ee3f4b6d7c31630"
+    },
+    "src/instanttrack/dex/__init__.py": {
+      "bytes": 32,
+      "sha256": "c7c5a64add490788b46608aa9508516b7571975953cb518876f6f4702e668f6e"
+    },
+    "src/instanttrack/dex/dex_constants.py": {
+      "bytes": 4198,
+      "sha256": "d1f46f8e4abcd0d8701f46b2652ee862ce9f6b407130722c7c9e419eb71346ee"
+    },
+    "src/instanttrack/dr.py": {
+      "bytes": 14674,
+      "sha256": "aa982a9536ceb9ad74b5196bc81d99d9d4f50bca58c8f4f47becb8e0ab7f0044"
+    },
+    "src/instanttrack/env.py": {
+      "bytes": 15421,
+      "sha256": "379409ac63c01dfbb336ba3b58c4fda1db7dc31728eac764ed8850616a23c2d2"
+    },
+    "src/instanttrack/kinematics.py": {
+      "bytes": 4147,
+      "sha256": "9941b09d15dffce47fcf48aca55f4dd1bcaa21487a4fd5380a7e73854ad0f27a"
+    },
+    "src/instanttrack/mdp.py": {
+      "bytes": 9190,
+      "sha256": "80f046132c43e01776d9b244aaa8cd94d41c028b0cb20367285cfb57b3fe406f"
+    },
+    "src/instanttrack/motion.py": {
+      "bytes": 7217,
+      "sha256": "1287c8ad251c4895b54b64a9072b69498d868ff04cd303aa0b060a7fd503ce7b"
+    },
+    "src/instanttrack/networks.py": {
+      "bytes": 11280,
+      "sha256": "5868314ba961011b6635521141a99ee13aea0190055683e4d573460725adc4ed"
+    },
+    "src/instanttrack/robot.py": {
+      "bytes": 2988,
+      "sha256": "5c2b02f0b25acf2966bc157319f516c83ae854b1af2fb6715b47cb60cd307a20"
+    },
+    "src/instanttrack/rotations.py": {
+      "bytes": 5879,
+      "sha256": "c06b07af580994a4bc71d650cd9d186e4249499ebdd0bc67833e7388cf7ae6ad"
+    },
+    "src/instanttrack/sensing.py": {
+      "bytes": 11789,
+      "sha256": "634541f97e229d8c985cc81b6bbaee42b1f199cf88624e2794427033d23c2fa0"
+    },
+    "tests/test_contracts.py": {
+      "bytes": 2292,
+      "sha256": "36c8618ec893135f078ee5527b60f5d2cbc072cfe278f3ce165e97e93a095f1e"
+    },
+    "docs/DISTRIBUTION.md": {
+      "bytes": 1835,
+      "sha256": "fdd924a97431d383869a1d067d28963f365d13e22b48d64b758b378e0cd586c9"
+    },
+    "scripts/check_baseline.py": {
+      "bytes": 157,
+      "sha256": "f835e8d11966a1e2a37b221501ae59d1a2ea91d4a257cda8a212d1aac7da4b16"
+    },
+    "scripts/package_delivery.py": {
+      "bytes": 1960,
+      "sha256": "9d377afe05c8a8b731320b197e0909d1c2ac37e1476a8677e08c6eed03aae503"
+    },
+    "src/dex_supermimic/baseline.py": {
+      "bytes": 2144,
+      "sha256": "2b38efe3d31fd2a664c1be16813f53221a979a3338c72ab6873c181173c6b4a2"
+    },
+    "docs/delivery_validation.json": {
+      "bytes": 868,
+      "sha256": "f5be3d617afd7d19d0b539c3c025a44ea1575b873fbf44bfad8964331fe08361"
+    },
+    "docs/REVIEW_FIXES.md": {
+      "bytes": 2685,
+      "sha256": "98581271524861ded4b2036ac438a7ea7f5ee5d1d56e6f090a0e985319b77bb5"
+    },
+    "src/dex_supermimic/training/lr_schedule.py": {
+      "bytes": 3911,
+      "sha256": "6018fb17c15ca18cd1937ed3d376e85875579ca4d40bc1a4630433042f4ba324"
+    },
+    "tests/test_review_regressions.py": {
+      "bytes": 9109,
+      "sha256": "7d95ae8257f0c1f14c7f342807f9f2d6c95106123dbf123ba9d6288d257e7a3c"
+    }
+  }
+}
