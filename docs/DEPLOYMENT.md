@@ -1,5 +1,7 @@
 # 部署与评估
 
+以下命令以本地已有的 12341 导出包和评估动作为例。当前公开仓库未包含这些文件，也未提供完整 Release 附件；运行前须按 [发布范围与本地材料](DISTRIBUTION.md) 准备所需权重、资产、参考动作和评估清单。使用自有策略和动作时替换对应路径。
+
 ## 输出与输入
 
 导出目录包含 `policy.onnx`、`contract.json`、`model.mjb`、`export_check.json`。导出检查 64 组随机输入，PyTorch / ONNX 最大动作差须小于 1e-3。`model.mjb` 绑定 MuJoCo 版本；更换版本或平台应从 XML 重新编译并重新验证，不只拷贝二进制。

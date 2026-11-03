@@ -1,6 +1,6 @@
 # Dex 29 关节机器人资产
 
-完整交付包已包含本目录所需的实际资产和原始 LICENSE，可直接用于 12341。以下导入命令用于另建源码工作区或重新获取资产，不是本次完整交付的前置缺项。
+公开仓库在本目录仅提供本说明，不包含实际机器人资产，也未提供包含资产的 Release 附件。使用源码工作区前，须按下列来源取得匹配资产并导入；导入后保留其原始 LICENSE。
 
 来源：[Dex-Video2Robot](https://github.com/luckylhf/Dex-Video2Robot) 的 `Dex-GMR/assets/dex`，或既有已核验的相同资产目录。按上游许可获得模型，保留其 LICENSE。资产使用 OpenAtom Open Hardware License 1.0，不能用本仓库代码的 MIT 许可替代。
 

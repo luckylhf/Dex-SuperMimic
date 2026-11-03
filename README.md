@@ -12,11 +12,11 @@ Dex-SuperMimic 让**一个策略**接受不同的参考动作，在 Dex 29 自�
 | :---: | :---: | :---: |
 | ![GBTC best vs latest](docs/gbtc_best_vs_latest.gif) | ![dance-boy best vs latest](docs/dance_boy_best_vs_latest.gif) | ![dance-girl best vs latest](docs/dance_girl_best_vs_latest.gif) |
 
-## 交付内容
+## 仓库内容
 
-本仓库以 **12341 EMA 策略及其控制契约**为整理基准，开箱即含全部核心资产：真实权重（checkpoint / ONNX / 编译模型）、机器人资产、已导出的回放包，以及上方三段演示动作。BONES / LAFAN 大型训练集不随包分发，按 [数据说明](data/README.md) 另行获取。
+本仓库以 **12341 EMA 策略及其控制契约**为整理基准，公开主流程源码、配置、测试、文档和上方三段演示 GIF。权重（checkpoint / ONNX）、编译模型、机器人资产及演示动作数据均未随 Git 发布；BONES / LAFAN 训练集也需按 [数据说明](data/README.md) 另行获取。
 
-Git 只保存源码；权重等大文件随 `Dex-SuperMimic-12341.zip` 一起交付。发布到 GitHub 时必须同时提供该附件——只有源码无法直接复现基线。
+**当前没有提供完整基线 ZIP 或 Release 附件。** `git clone` 和 GitHub 的 Download ZIP 都只取得仓库跟踪的文件，不能直接运行 12341 基线。所需材料与准备方式见 [发布范围与本地材料](docs/DISTRIBUTION.md)。
 
 
 ```text
@@ -29,12 +29,13 @@ EMA checkpoint → ONNX + 机器人契约 / 编译模型
 原生 MuJoCo / ROS 2 + MuJoCo → 指标与参考 / 历史最佳 / 最新视频
 ```
 
-## 先跑基线：直接使用附带的文件
+## 准备基线材料后回放
 
-使用完整交付包 `Dex-SuperMimic-12341.zip`，解压后进入项目根目录。本次本地项目已经放齐以下文件，不需要自己找权重，也不需要重新导出 ONNX：
+以下命令仅适用于已自行取得匹配的 12341 权重、资产和参考动作的工作区。公开仓库不提供这些文件的完整下载包。请先按 [权重说明](checkpoints/12341/README.md)、[资产说明](assets/dex_evt/README.md) 和 [动作说明](data/evaluation/README.md) 准备下列本地文件；没有原始 12341 材料时，可使用后文训练入口训练自己的策略，但不能据此声称复现同一基线。
 
 ```text
 checkpoints/12341/
+  artifacts_manifest.json    # 原始基线文件清单及 SHA-256
   ckpt_012341.pt              # EMA / live actor + 世界模型
   full_state_012341.pt        # 用于恢复训练的完整状态
   bundle/
@@ -43,10 +44,10 @@ checkpoints/12341/
     contract.json
     export_check.json
 assets/dex_evt/               # 完整 XML、网格、URDF、元数据与原始 LICENSE
-data/evaluation/             # videos、motions、references、suite.json
+data/evaluation/             # motions、references、suite.json、download_manifest.json
 ```
 
-Linux 上，先安装轻量回放依赖；这一步不需要 CUDA、PyTorch、mjlab 或 BONES：
+材料齐备后，在仓库根目录安装 Linux 轻量回放依赖并执行校验；这一步不需要 CUDA、PyTorch、mjlab 或 BONES。`check_baseline.py` 需要上述两个原始清单及其列出的全部文件，源码克隆中缺少这些材料时无法通过：
 
 ```bash
 python3.11 -m venv .venv
@@ -58,18 +59,18 @@ mkdir -p runs/baseline
 DEX_EVALUATION_PROFILE=height_diagnostic_v1 dex-sm play --bundle checkpoints/12341/bundle --reference data/evaluation/references/dance_boy.npz --out runs/baseline/dance_boy.json
 ```
 
-这套入口已在未安装 PyTorch / mjlab 的全新 Python 环境验收。网络下载慢时，安装命令可加 `--index-url https://pypi.tuna.tsinghua.edu.cn/simple`。
+这套入口曾使用维护者本地齐备的基线材料，在未安装 PyTorch / mjlab 的全新 Python 环境验收；该记录不表示公开仓库附带运行材料。网络下载慢时，安装命令可加 `--index-url https://pypi.tuna.tsinghua.edu.cn/simple`。
 
-这会实际运行 CPU MuJoCo 闭环仿真，生成指标 JSON 和记录轨迹 NPZ；不是打开图形窗口。改用 `gbtc.npz` 或 `dance_girl_original_start.npz` 即可换动作。ROS 回放和比较视频入口见 [部署与评估](docs/DEPLOYMENT.md)。文件校验失败时会明确报缺什么，不再用占位目录冒充已准备。
+这会实际运行 CPU MuJoCo 闭环仿真，生成指标 JSON 和记录轨迹 NPZ；不是打开图形窗口。准备相应参考文件后，改用 `gbtc.npz` 或 `dance_girl_original_start.npz` 即可换动作。ROS 回放和比较视频入口见 [部署与评估](docs/DEPLOYMENT.md)。
 
-需要转换新动作或重新导出时，再安装 [训练/导出环境](docs/SETUP.md)，使用：
+需要转换新动作或重新导出时，先准备对应的机器人动作、checkpoint 和资产，再安装 [训练/导出环境](docs/SETUP.md)。以下以本地 12341 材料为例，使用其他材料时替换路径：
 
 ```bash
 dex-sm bundle motion --source data/evaluation/motions/dance_boy.npz --out runs/baseline/dance_boy.reference.npz
 dex-sm bundle export --checkpoint checkpoints/12341/ckpt_012341.pt --out runs/reexport_12341/bundle
 ```
 
-输入为匹配 Dex 模型的机器人 NPZ；人体 BVH 或视频先经过姿态提取 / GMR。Robot PKL 不是 SMPL-X 模型。完整交付与 GitHub 附件的范围见 [交付说明](docs/DISTRIBUTION.md)。
+输入为匹配 Dex 模型的机器人 NPZ；人体 BVH 或视频先经过姿态提取 / GMR。Robot PKL 不是 SMPL-X 模型。文件准备范围见 [发布范围与本地材料](docs/DISTRIBUTION.md)。
 
 ## 数据到训练
 
@@ -93,6 +94,8 @@ dex-sm train --config configs/train_feedback.json --data-release data/bones_seed
 ## 每半小时评估
 
 训练会在初始状态、约每 30 分钟、最终状态保存评估任务。另开 CPU worker 消费队列，实际评估可能因视频渲染排队而延后；任务对应的 checkpoint 会保留。
+
+以下示例要求本地已准备三个参考 NPZ；使用自有动作时，替换 `--reference` 名称与路径。
 
 ```bash
 python scripts/make_suite.py --reference gbtc=data/evaluation/references/gbtc.npz --reference dance_boy=data/evaluation/references/dance_boy.npz --reference dance_girl=data/evaluation/references/dance_girl_original_start.npz --out data/evaluation/suite.json
