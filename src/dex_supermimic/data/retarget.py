@@ -13,8 +13,8 @@ ROOT = Path(__file__).resolve().parent
 SOLVER_ROOT = ROOT / 'v8'
 CONVERTER = 'dex_v8'
 POSE_SOLVER = 'dex_v8_per_axis_velocity'
-CONVERTER_RELEASE = 'V8_cpu_support_20261105'
-SOLVER_POLICY = 'per_axis_velocity_v8_mink_arm_recovery_v1'
+CONVERTER_RELEASE = 'V8_cpu_coupled_arms_20261105'
+SOLVER_POLICY = 'per_axis_velocity_v8_mink_arm_recovery_v2'
 QUALITY_POLICY = 'adjacent_joint_speed_and_arm_collision_v8'
 DATASETS = {
     'bones_seed': ('soma', 'BONES-SEED: Skeletal Everyday Embodiment Dataset — SOMA Uniform BVH'),
