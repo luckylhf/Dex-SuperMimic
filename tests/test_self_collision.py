@@ -60,6 +60,8 @@ def test_actual_repair_preserves_nonarm_limits_speed_and_interpolation(case):
     assert report['before']['collision_samples']>0
     assert report['after']['collision_samples']==0
     assert report['windows'][0]['status']=='repaired'
+    assert report['windows'][0]['sides']==['Left']
+    assert report['windows'][0]['side_selection']['margin_added_sides']==[]
     ids=np.array(r.sides['Left']['arm']);other=np.setdiff1d(np.arange(32),ids)
     np.testing.assert_array_equal(out[:,other],x[:,other])
     assert np.all(out[:,ids]>=r.lower[ids]-2e-6) and np.all(out[:,ids]<=r.upper[ids]+2e-6)
@@ -108,3 +110,65 @@ def test_training_gate_requires_collision_evidence():
     with pytest.raises(ValueError,match='Inconsistent'):require_v8_acceptance(row)
     row['grade']='B_needs_repair';row['quality']['flags']=['arm_self_collision_unresolved']
     require_v8_acceptance(row)
+
+
+@pytest.fixture(scope='module')
+def opposite_margin_case():
+    """Stationary geometry probe: left penetrates, right is clear but <3.5 mm.
+
+    A fixed pose extracted from the diagnosed failure; no motion files or
+    external assets beyond the shipped robot are needed to reproduce it.
+    """
+    import dex_supermimic.data.v8.self_collision as module
+    cfg=json.loads(Path(module.__file__).with_name('config.json').read_text())
+    r=Robot();configure(r,cfg['anatomy'])
+    x=np.array([-.022314388,.208637670,.994374275,
+        -.037025243,-.092631131,-.149652347,.074018955,-.043136377,.073311083,
+        .039062493,.099499837,-.090586185,-.042922199,-.019692272,-.110047318,
+        .137328535,.031326491,.031811032,
+        .089699231,-.022662425,-.342152238,-.225967675,-.040431518,-.001211743,.182145804,
+        .138641477,-.082866654,.483321428,-.290417045,.054567453,.000675230,-.151430950])
+    r.set(x,np.eye(3));n=9
+    def rep(v):return np.repeat(np.asarray(v)[None],n,axis=0)
+    def direction(a,b):
+        d=r.point(b)-r.point(a);return rep(d/np.linalg.norm(d))
+    t=dict(fps=50.,root_r=rep(np.eye(3)),sides={},body_contacts=[])
+    for side,g in r.sides.items():
+        t['sides'][side]=dict(upper=direction(g['shoulder'],g['elbow']),lower=direction(g['elbow'],g['wrist']),
+            hand_forward=rep(-r.rot(g['tcp'])[:,2]),hand_width=rep(r.rot(g['tcp'])[:,0]),
+            forearm_width=rep(r.rot(g['forearm'])[:,0]),elbow_axis=rep(-r.rot(g['shoulder'])[:,1]),
+            signed_elbow_bend=np.full(n,g['elbow_geometric_zero']-x[g['arm'][3]]))
+    return r,t,rep(x),cfg
+
+
+def test_opposite_margin_automatically_enables_both_arms(opposite_margin_case):
+    from dex_supermimic.data.v8.self_collision import _repair_window
+    r,t,x,cfg=opposite_margin_case
+    model=CollisionModel(r,cfg['self_collision']);model.update(x[0],t['root_r'][0])
+    k=next(i for i,pair in enumerate(model.names) if set(pair)=={
+        'hip_pitch_r_link_collision','wrist_roll_r_link_collision'})
+    assert 0 < model.distances()[k] < cfg['self_collision']['margin_m']
+    # Explicitly reproduce the old selected-variable contradiction.
+    with pytest.raises(ValueError,match='collision_qp_primal infeasible'):
+        _repair_window(model,t,x,cfg['solver'],0,len(x),['Left'])
+    out,report=refine(r,t,x,cfg['solver'],cfg['self_collision'])
+    window=report['windows'][0]
+    assert window['status']=='repaired'
+    assert window['sides']==['Left','Right']
+    assert window['side_selection']['collision_sides']==['Left']
+    assert window['side_selection']['margin_added_sides']==['Right']
+    assert report['after']['collision_samples']==0
+    ids=np.array(r.sides['Left']['arm']+r.sides['Right']['arm'])
+    np.testing.assert_array_equal(out[:,np.setdiff1d(np.arange(32),ids)],x[:,np.setdiff1d(np.arange(32),ids)])
+    assert np.all(out[:,ids]>=r.lower[ids]-2e-6) and np.all(out[:,ids]<=r.upper[ids]+2e-6)
+    assert np.all(abs(np.diff(out[:,3:],axis=0))<=r.joint_step(t['fps'],cfg['solver'])+2e-6)
+    assert scan(CollisionModel(r),out,t['root_r'],8)[0]['collision_samples']==0
+
+
+def test_margin_added_support_arm_still_requires_coupled_contact_repair(opposite_margin_case):
+    r,t,x,cfg=opposite_margin_case;t=copy.deepcopy(t)
+    t['body_contacts']=[dict(body=r.sides['Right']['forearm'],mode=np.ones(len(x),dtype=int))]
+    out,report=refine(r,t,x,cfg['solver'],cfg['self_collision'])
+    assert report['windows'][0]['side_selection']['margin_added_sides']==['Right']
+    assert report['windows'][0]['reason']=='active_arm_support_requires_coupled_repair'
+    np.testing.assert_array_equal(out,x)

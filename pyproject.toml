@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dex-supermimic"
-version = "0.1.8"
+version = "0.1.9"
 description = "Dex whole-body motion tracking with a learned world model and BPTT"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"

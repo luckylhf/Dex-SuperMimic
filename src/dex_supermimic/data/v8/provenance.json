@@ -1,11 +1,11 @@
 {
   "origin": "User-approved Dex converter v7, 2026-11-03",
-  "algorithm_changes": "Prior CPU acceleration retained; actual Mink arm collision scan, bounded local recovery, arm support protection, independent export audit and B-grade unresolved collision gate. Final support reporting uses 1 mm for floor penetration and contact residual; numerical solver targets unchanged.",
+  "algorithm_changes": "Prior CPU acceleration retained; actual Mink arm collision scan, bounded local recovery, arm support protection, independent export audit and B-grade unresolved collision gate. Final support reporting uses 1 mm for floor penetration and contact residual; numerical solver targets unchanged. Default collision windows now select every arm involved in a below-margin pair, including a nonpenetrating opposite arm, before the unchanged local repair. Existing support guards and rollback remain.",
   "datasets": {
     "bones_seed": "BONES-SEED: Skeletal Everyday Embodiment Dataset (SOMA Uniform BVH)",
     "lafan1": "Ubisoft La Forge Animation Dataset (LAFAN1)"
   },
-  "current_solver_policy": "per_axis_velocity_v8_mink_arm_recovery_v1",
+  "current_solver_policy": "per_axis_velocity_v8_mink_arm_recovery_v2",
   "source_geometry_assets": {
     "lafan1_surfaces.json": "3d9349b5ec686248be6ab73ea3b918f486016a0d22e4b4b80d5418c8f3a608aa",
     "soma_surfaces.json": "4074b8d830f53af246b4d93d1871af38c8825e6b6b6bbaf034d4612673c89266"
@@ -25,8 +25,9 @@
     "dex_retarget/source.py": "c129f4756cebcc84c732f3e832ca1486c92a82aad402376d80db6cd4a4f69c98",
     "dex_retarget/trajectory.py": "0a9cddeb044928fdcf41567bec5a4ef9083009c6e912f0027ce6adbc064fa2d3"
   },
-  "release": "V8_cpu_support_20261105",
-  "validation_scope": "102 tests without skips; 21 complete cached motions through new collision stage and full pose audit; no full-library reconversion",
-  "implementation_patch": "cpu_mink_support_acceptance_1mm_20261105",
-  "support_acceptance_m": 0.001
+  "release": "V8_cpu_coupled_arms_20261105",
+  "validation_scope": "111 tests without skips for margin-aware default arm selection; per-motion verification tracked in V8_FINAL_RELEASE.json; no full-library reconversion",
+  "implementation_patch": "cpu_mink_margin_aware_arm_selection_20261105",
+  "support_acceptance_m": 0.001,
+  "historical_validation_scope": "102 tests without skips; 21 complete cached motions through new collision stage and full pose audit; no full-library reconversion"
 }

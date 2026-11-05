@@ -1,6 +1,6 @@
 # Dex V8：硬件边界内拟合与分状态接触
 
-支持 BONES-SEED: Skeletal Everyday Embodiment Dataset 的 SOMA Uniform BVH，以及 Ubisoft La Forge Animation Dataset（LAFAN1）原始 BVH。求解器身份 `dex_v8_per_axis_velocity`，正式版本 `V8_cpu_support_20261105`，当前策略 `per_axis_velocity_v8_mink_arm_recovery_v1`。保持原动作时间轴，输出50Hz。
+支持 BONES-SEED: Skeletal Everyday Embodiment Dataset 的 SOMA Uniform BVH，以及 Ubisoft La Forge Animation Dataset（LAFAN1）原始 BVH。求解器身份 `dex_v8_per_axis_velocity`，正式版本 `V8_cpu_coupled_arms_20261105`，当前策略 `per_axis_velocity_v8_mink_arm_recovery_v2`。保持原动作时间轴，输出50Hz。
 
 ## 关节与动作
 
@@ -141,6 +141,11 @@ Mink 对已经穿入的姿态主要限制继续靠近，不能自动将其推出
 
 ## 版本与帧率入口
 
-软件包版本由 `pyproject.toml` 管理（当前 0.1.8）；转换器身份由 `retarget.py` 的 V8 发布标识及源码/配置哈希记录。已移除 V8 子模块未使用的旧 `__version__ = '0.7.0'`，不再维护第二套包版本号。
+软件包版本由 `pyproject.toml` 管理（当前 0.1.9）；转换器身份由 `retarget.py` 的 V8 发布标识及源码/配置哈希记录。已移除 V8 子模块未使用的旧 `__version__ = '0.7.0'`，不再维护第二套包版本号。
 
 `v8/config.json` 不设置输出帧率。正式 `dex-sm data convert` 批量入口输出 50 fps；底层 `v8.convert` 的 `fps` 参数 / `--fps` 控制重采样，未指定时保留源 BVH 帧率。删除原先未读取的 `fps: 60.0` 不改变这些行为。源码与配置哈希会更新；旧动作文件及验收记录不自动改写，严格身份检查仍会识别新旧指纹差异。
+
+
+## 默认联合手臂选择（2026-11-05）
+
+`cpu_mink_margin_aware_arm_selection_20261105` 将活动手臂选择从仅考虑穿透碰撞，扩展为考虑整个修复窗口内低于 3.5 mm 间距的碰撞对。避免右臂未穿透但间距不足、右臂又被冻结而产生不可行约束。无碰撞动作仍不启动修复；另一侧满足间距时仍仅修复原手臂；新增手臂若有支撑接触仍拒绝局部修复。求解器、间距、限位和速度门槛不变。`self_collision.windows[].side_selection` 记录原碰撞手臂、因间距新增的手臂及相关碰撞对。详见 [合入验证](V8_COUPLED_ARMS_20261105.md)。

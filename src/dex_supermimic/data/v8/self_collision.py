@@ -13,7 +13,7 @@ from scipy import sparse as sp
 from scipy.spatial.transform import Rotation
 from .arms import ArmObjective
 
-POLICY = 'mink_arm_local_recovery_v1'
+POLICY = 'mink_arm_local_recovery_v2'
 DEFAULTS = dict(enabled=True, margin_m=.0035, detection_m=.08,
                 penetration_tolerance_m=1e-5, padding_s=.32,
                 max_window_s=3., max_iterations=24, interpolation_steps=4)
@@ -233,6 +233,32 @@ def _repair_window(model, t, xs, solver_cfg, a, b, sides):
                           maximum_correction_deg=float(np.rad2deg(abs(q-q0)).max()))
 
 
+def _window_sides(model, xs, rotations, a, b, collision_pair_ids):
+    """Select every arm needed by the window's clearance constraints.
+
+    A nonpenetrating opposite arm can still violate the recovery margin.
+    Freezing it while imposing its distance inequality creates an impossible
+    zero-Jacobian row. Include its joints rather than dropping the constraint
+    or reducing the margin. The repair's support guard still applies to every
+    selected arm. Only already-impacted windows reach this function.
+    """
+    def sides_for(pair_ids):
+        geoms = {geom for k in pair_ids for geom in model.pairs[k]}
+        return [side for side, group in model.arms.items() if geoms.intersection(group)]
+
+    collision_pair_ids = set(collision_pair_ids)
+    collision_sides = sides_for(collision_pair_ids)
+    margin_pair_ids = set()
+    for i in range(a, b):
+        model.update(xs[i], rotations[i])
+        margin_pair_ids.update(np.flatnonzero(model.distances() < model.cfg['margin_m']).tolist())
+    sides = sides_for(collision_pair_ids | margin_pair_ids)
+    return sides, dict(policy='collision_and_window_clearance_v2',
+                       collision_sides=collision_sides,
+                       margin_added_sides=[s for s in sides if s not in collision_sides],
+                       margin_pairs=[model.names[k] for k in sorted(margin_pair_ids)])
+
+
 def refine(robot, t, xs, solver_cfg, config=None, progress=None):
     cfg=dict(DEFAULTS,**(config or {}));start=time.perf_counter()
     if not cfg['enabled']:return xs,dict(policy=POLICY,status='disabled')
@@ -242,8 +268,7 @@ def refine(robot, t, xs, solver_cfg, config=None, progress=None):
         if progress:progress(a,len(xs))
         relevant=[e for e in events if a<=e['frame']<b]
         pair_ids={k for e in relevant for k in e['pairs']}
-        geoms={g for k in pair_ids for g in model.pairs[k]}
-        sides=[s for s,group in model.arms.items() if geoms.intersection(group)]
+        sides,selection=_window_sides(model,out,t['root_r'],a,b,pair_ids)
         try:
             if b-a>max(3,round(cfg['max_window_s']*fps)):
                 raise ValueError('window_exceeds_local_repair_budget')
@@ -252,6 +277,7 @@ def refine(robot, t, xs, solver_cfg, config=None, progress=None):
             out=candidate
         except ValueError as error:
             report=dict(start=a,end=b,sides=sides,status='unresolved',reason=str(error))
+        report['side_selection']=selection
         reports.append(report)
     after,_,_=scan(model,out,t['root_r']) if impacted else (before,None,None)
     return out,dict(policy=POLICY,status='completed',before=before,after=after,windows=reports,
