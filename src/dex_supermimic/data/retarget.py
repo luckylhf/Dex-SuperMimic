@@ -1,4 +1,4 @@
-"""Packaged v7 entry, dataset routing, and conversion identity (CPU only)."""
+"""Packaged V8 entry, dataset routing, and conversion identity (CPU only)."""
 import hashlib
 import importlib.metadata
 import json
@@ -6,11 +6,16 @@ from pathlib import Path
 import re
 import xml.etree.ElementTree as ET
 
-from dex_supermimic.common import sha
+from dex_supermimic.common import atomic, sha
 from dex_supermimic.paths import ASSETS
 
 ROOT = Path(__file__).resolve().parent
-V7 = ROOT / 'v7'
+SOLVER_ROOT = ROOT / 'v8'
+CONVERTER = 'dex_v8'
+POSE_SOLVER = 'dex_v8_per_axis_velocity'
+CONVERTER_RELEASE = 'V8_cpu_support_20261105'
+SOLVER_POLICY = 'per_axis_velocity_v8_mink_arm_recovery_v1'
+QUALITY_POLICY = 'adjacent_joint_speed_and_arm_collision_v8'
 DATASETS = {
     'bones_seed': ('soma', 'BONES-SEED: Skeletal Everyday Embodiment Dataset — SOMA Uniform BVH'),
     'lafan1': ('lafan', 'Ubisoft La Forge Animation Dataset (LAFAN1)'),
@@ -52,10 +57,10 @@ def conversion_identity(dataset, *, include_runtime=True):
     meshdir = compiler.get('meshdir', '') if compiler is not None else ''
     meshes = {(model.parent/meshdir/m.get('file')).resolve() for m in xml.findall('./asset/mesh') if m.get('file')}
     geometry = {str(p.relative_to(ASSETS.resolve())):sha(p) for p in sorted(meshes)}
-    files = [p for p in V7.rglob('*') if p.is_file() and p.suffix in ('.py', '.json', '.bvh')]
-    files += [ROOT/n for n in ('prepare.py', 'retarget.py', 'training_format.py', 'quality_v7.py', 'quality_v7.json')]
-    versions = {name: importlib.metadata.version(name) for name in ('numpy', 'scipy', 'mujoco')} if include_runtime else None
-    identity = dict(backend='dex_v7', dataset=dataset, source_type=DATASETS[dataset][0], fps=50.,
+    files = [p for p in SOLVER_ROOT.rglob('*') if p.is_file() and p.suffix in ('.py', '.json', '.bvh')]
+    files += [ROOT/n for n in ('prepare.py', 'retarget.py', 'training_format.py', 'quality_pose.py', 'quality_pose.json', 'quality_v8.py')]
+    versions = {name: importlib.metadata.version(name) for name in ('numpy', 'scipy', 'mujoco', 'osqp', 'mink', 'qpsolvers')} if include_runtime else None
+    identity = dict(converter_release=CONVERTER_RELEASE, backend=CONVERTER, pose_solver=POSE_SOLVER, solver_policy=SOLVER_POLICY, quality_policy=QUALITY_POLICY, dataset=dataset, source_type=DATASETS[dataset][0], fps=50.,
                     model_sha256=sha(model), urdf_sha256=sha(urdf), manifest_sha256=sha(ASSETS/'model.json'),
                     mesh_sha256=geometry,
                     implementation={str(p.relative_to(ROOT)):sha(p) for p in sorted(files)})
@@ -78,8 +83,11 @@ def validate_record_identity(record, expected):
 
 
 def convert(source, output, *, dataset='auto', fps=50., max_frames=None):
-    """Full v7 solve from BVH; never reuse v6 body trajectories in dataset conversion."""
-    from .v7.convert import convert as solve
+    """Full V8 solve from BVH with named-axis velocity limits and fixed timing."""
+    from .v8.convert import convert as solve
     resolved = resolve_dataset(source, dataset)
-    return solve(source, output, source=DATASETS[resolved][0],
+    meta = solve(source, output, source=DATASETS[resolved][0],
                  model=str(ASSETS/'mjcf/dex_29.xml'), fps=fps, max_frames=max_frames)
+    meta.update(converter_release=CONVERTER_RELEASE, converter_version=8, pose_solver=POSE_SOLVER, solver_policy=SOLVER_POLICY, quality_policy=QUALITY_POLICY)
+    atomic(Path(output).with_suffix('.json'), meta)
+    return meta

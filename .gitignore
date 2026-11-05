@@ -9,13 +9,13 @@ runs/
 logs/
 .env
 .env.*
-.DS_Store
-._*
 data/**
 !data/**/
 !data/**/README.md
+# Robot assets are shipped in Git; other asset trees remain local.
 assets/**
 !assets/**/
+!assets/dex_evt/**
 !assets/**/README.md
 checkpoints/**
 !checkpoints/**/
@@ -27,7 +27,7 @@ external/**
 *.onnx
 *.mjb
 *.bvh
-!src/dex_supermimic/data/v7/reference/soma_zero.bvh
+!src/dex_supermimic/data/v8/reference/soma_zero.bvh
 *.npz
 *.pkl
 *.mp4
@@ -37,3 +37,7 @@ external/**
 
 # Copyrighted evaluation videos must remain local.
 /data/evaluation/videos/
+
+# macOS metadata must never be tracked, including under the asset whitelist.
+.DS_Store
+._*

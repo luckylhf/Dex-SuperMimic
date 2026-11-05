@@ -1,4 +1,6 @@
-# Dex v7 数据集转换
+# Dex v7 数据集转换（历史版本）
+
+当前默认的数据转换与训练准入见 [V8 说明](RETARGET_V8.md)。本页记录 V7 姿态求解器的实现和当时的验证结果。
 
 ## 数据集与版本
 
@@ -9,7 +11,7 @@
 
 SOMA 是骨架表示，不是第三个数据集。批处理入口会检查骨架与数据集标签是否一致；SOMA Proportional、任意改名骨架或 G1 CSV 不属于本接口支持范围。
 
-代码位于 `src/dex_supermimic/data/v7/`，来自 2026-11-03 用户确认的独立 Dex v7。接入时保留求解数学、配置与腕部范围；改动是包内导入、相对校准资源、统一机器人路径和版本记录。导出后增加骨盆/躯干方向与静态悬空统计，作为筛选证据，不反向改变已求解动作。原实现文件哈希保存在 `provenance.json`。
+V7 当时代码位于 `src/dex_supermimic/data/v7/`（该旧入口现已移除；当前实现为 `src/dex_supermimic/data/v8/`），来自 2026-11-03 用户确认的独立 Dex v7。接入时保留求解数学、配置与腕部范围；改动是包内导入、相对校准资源、统一机器人路径和版本记录。导出后增加骨盆/躯干方向与静态悬空统计，作为筛选证据，不反向改变已求解动作。原实现文件哈希保存在 `provenance.json`。
 
 独立 v7 的五段人工预览曾以 v6 身体为基础重新解算手臂；**本包的新数据集转换从原始 BVH 跑完整 v7 全身流程**，不读取旧 PKL 的腿部或根轨迹。
 
@@ -35,7 +37,7 @@ NASA 提供的是人体单轴范围，软范围、左右轴符号与物理限位
 
 ## 使用与接口
 
-在仓库根目录准备机器人资产并安装：
+在仓库根目录安装（机器人资产已随仓库提供）：
 
 ```bash
 python -m pip install -e '.[convert]'
@@ -67,16 +69,9 @@ dex-sm data build --records data/lafan1/processed_v7/records --out data/lafan1/r
 | `motions/<id>.npz` | 50 Hz、WXYZ、`root_joint_lossless_v1`、模型 SHA 与严格关节名顺序，供现有训练读取器 |
 | `records/<id>.json` | 质量等级、来源/产物哈希、转换器指纹、数值库版本及清单元数据 |
 
-训练导出只做字段布局和 XYZW→WXYZ 分量重排，不再次求解或插值。`instanttrack/motion.py`、`kinematics.py` 及现有训练/控制参数保持不变。历史 `retarget_soma.convert` 导入仍可用，内部改为 BONES-SEED v7、50 Hz；显式传入旧 `warm_frames` 会产生弃用提示，不再伪造 GMR 预热。
+训练导出只做字段布局和 XYZW→WXYZ 分量重排，不再次求解或插值。`instanttrack/motion.py`、`kinematics.py` 及现有训练/控制参数保持不变。历史 `retarget_soma.convert` 导入仍可用，内部改为 BONES-SEED V8、50 Hz；显式传入旧 `warm_frames` 会产生弃用提示，不再伪造 GMR 预热。
 
-只做单段独立预览可运行：
-
-```bash
-python -m dex_supermimic.data.v7.convert /path/to/input.bvh /path/to/new_motion.pkl --source soma --fps 60
-python -m dex_supermimic.data.v7.audit /path/to/new_motion.pkl
-```
-
-LAFAN1 用 `--source lafan`。低层独立入口可选原始帧率；数据集批处理固定 50 Hz。不要把不同帧率的同一帧编号直接当成相同时刻。
+当前统一操作入口与目录见 [V8 文档](RETARGET_V8.md)。本页的 V7 命令和数据数量仅作历史说明。
 
 ## 旧结果迁移
 

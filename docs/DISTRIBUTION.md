@@ -1,8 +1,8 @@
 # 发布范围与本地材料
 
-GitHub 当前发布主流程源码、配置、测试、文档、许可证和演示 GIF。完整基线 ZIP 及其 SHA-256 校验文件仅保留在维护者本地，已被 `.gitignore` 忽略，未上传到仓库或 Release。
+GitHub 当前发布主流程源码、配置、测试、文档、许可证、`assets/dex_evt/` 机器人资产和演示 GIF。完整基线 ZIP 及其 SHA-256 校验文件仅保留在维护者本地，已被 `.gitignore` 忽略，未上传到仓库或 Release。
 
-`git clone` 和 GitHub 的 Download ZIP 均只包含 Git 跟踪的文件。下载源码不会取得 12341 权重、机器人资产或演示动作，不能直接运行文档中的基线回放与续训示例。
+`git clone` 和 GitHub 的 Download ZIP 均只包含 Git 跟踪的文件。下载源码会包含机器人资产，但不会取得 12341 权重或演示动作，仍不能直接运行文档中的完整基线回放与续训示例。
 
 ## 运行前需要准备的材料
 
@@ -10,7 +10,7 @@ GitHub 当前发布主流程源码、配置、测试、文档、许可证和演�
 |---|---|
 | `checkpoints/12341/ckpt_012341.pt`、`full_state_012341.pt` | 原始 12341 checkpoint 和完整训练状态，当前没有仓库下载附件；已有材料可按 [权重说明](../checkpoints/12341/README.md) 核对 |
 | `checkpoints/12341/bundle/` | 回放所需 ONNX、MuJoCo 编译模型、控制契约和导出报告；须已有匹配导出结果，或从自己的 checkpoint 导出并验证 |
-| `assets/dex_evt/` | 按 [机器人资产说明](../assets/dex_evt/README.md) 取得匹配 XML、网格、URDF、元数据及原始 LICENSE，再执行导入脚本 |
+| `assets/dex_evt/` | 已随 Git 提供匹配的 XML、网格、URDF、元数据及原始 LICENSE，无需另行导入；外部目录可用 `DEX_ASSETS` 指定，说明见 [机器人资产说明](../assets/dex_evt/README.md) |
 | `data/evaluation/` | 自行准备已授权的机器人动作与参考特征，用 `scripts/make_suite.py` 生成评估清单，见 [评估动作说明](../data/evaluation/README.md) |
 | BONES / LAFAN 训练数据 | 按 [数据说明](../data/README.md) 获取、转换和构建；训练入口不附带这些数据 |
 

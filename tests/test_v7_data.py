@@ -9,7 +9,7 @@ from types import SimpleNamespace
 
 import numpy as np
 import pytest
-from dex_supermimic.data import retarget, training_format, quality_v7
+from dex_supermimic.data import retarget, training_format, quality_pose
 from dex_supermimic.data.prepare import _convert, training_rows, row_sha, source_row
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,7 +26,7 @@ def test_dataset_routing_rejects_mislabeled_skeleton(tmp_path):
     with pytest.raises(ValueError, match='Unrecognized'):retarget.resolve_dataset(p)
 
 
-@pytest.mark.parametrize('backend,fingerprint',[('gmr','old'),('dex_v7','old')])
+@pytest.mark.parametrize('backend,fingerprint',[('gmr','old'),('dex_v7','old'),('dex_v8','old')])
 def test_unchanged_source_cannot_reuse_legacy_or_stale_conversion(tmp_path,monkeypatch,backend,fingerprint):
     from dex_supermimic.common import atomic, sha
     p=tmp_path/'source.bvh';p.write_text('source')
@@ -76,7 +76,7 @@ def sample(tmp_path,monkeypatch):
     names=['joint_'+str(i) for i in range(29)]
     manifest=dict(joint_names=names,model_sha256='fixture',joint_limits={n:{'velocity':16.} for n in names})
     (tmp_path/'model.json').write_text(json.dumps(manifest))
-    monkeypatch.setattr(training_format,'ASSETS',tmp_path);monkeypatch.setattr(quality_v7,'ASSETS',tmp_path)
+    monkeypatch.setattr(training_format,'ASSETS',tmp_path);monkeypatch.setattr(quality_pose,'ASSETS',tmp_path)
     p=np.arange(99,dtype=np.float32).reshape(33,3)/1000
     q=np.tile(np.array([.1,.2,.3,np.sqrt(.86)],dtype=np.float32),(33,1))
     data=dict(joint_names=names,root_pos=p,root_rot=q,dof_pos=np.zeros((33,29),dtype=np.float32),fps=50.,quat_order='xyzw')
@@ -115,17 +115,17 @@ def test_source_torso_flip_is_not_a_quality_candidate(sample):
     audit=dict(finite=True,effective_anatomical_limit_violation_deg=0.,root_orientation_deg=zero,
                torso_orientation_deg=zero,torso_up_deg=zero,stationary_floating_longest_seconds=0.,sides={})
     meta=dict(support_constraint_failures=[])
-    assert quality_v7.quality(path,meta,audit)['flags']==[]
+    assert quality_pose.quality(path,meta,audit)['flags']==[]
     audit['torso_up_deg']=dict(zero,max=90.);audit['torso_orientation_deg']=dict(zero,p95=90.)
-    result=quality_v7.quality(path,meta,audit)
+    result=quality_pose.quality(path,meta,audit)
     assert 'source_torso_up_mismatch' in result['flags']
     assert 'source_torso_orientation_mismatch' in result['flags']
     assert 'priming_frames' not in result
 
 
 def test_calibration_resources_are_self_contained():
-    from dex_supermimic.data.v7.source import REFERENCE, adapt
-    from dex_supermimic.data.v7.bvh import load
+    from dex_supermimic.data.v8.source import REFERENCE, adapt
+    from dex_supermimic.data.v8.bvh import load
     motion=load(REFERENCE/'soma_zero.bvh')
     motion.local_p=np.repeat(motion.local_p[:1],30,axis=0)
     motion.local_r=np.repeat(motion.local_r[:1],30,axis=0)
@@ -136,11 +136,11 @@ def test_calibration_resources_are_self_contained():
 
 
 def test_wrists_match_physical_mount_and_nasa_intersection():
-    from dex_supermimic.data.v7.robot import Robot, DEFAULT_MODEL
-    from dex_supermimic.data.v7.anatomy import configure, wrist_from_relative_rotation
+    from dex_supermimic.data.v8.robot import Robot, DEFAULT_MODEL
+    from dex_supermimic.data.v8.anatomy import configure, wrist_from_relative_rotation
     from scipy.spatial.transform import Rotation
     if not Path(DEFAULT_MODEL).exists():pytest.skip('Local licensed robot assets not installed')
-    robot=Robot();cfg=json.loads((retarget.V7/'config.json').read_text());configure(robot,cfg['anatomy'])
+    robot=Robot();cfg=json.loads((retarget.SOLVER_ROOT/'config.json').read_text());configure(robot,cfg['anatomy'])
     for side,g in robot.sides.items():
         ids=g['arm'][5:7]
         np.testing.assert_allclose(np.degrees(robot.lower[ids]),[-20,-76],atol=1e-8)

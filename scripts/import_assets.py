@@ -1,4 +1,4 @@
-"""Copy the matching Dex robot directory into the ignored local assets folder."""
+"""Copy a verified Dex robot directory into assets/dex_evt."""
 import argparse
 import json
 from pathlib import Path

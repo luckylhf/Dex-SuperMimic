@@ -2,7 +2,7 @@
 
 训练目标平台为 Linux + NVIDIA CUDA；macOS 可阅读代码、准备文件，不承诺 GPU 训练或 ROS Humble 原生运行。
 
-以下命令安装代码和依赖，不会下载权重、机器人资产或动作数据。当前没有完整基线 Release 附件，运行前需按 [发布范围与本地材料](DISTRIBUTION.md) 准备输入文件。
+以下命令安装代码和依赖，不会下载权重或动作数据；机器人资产已随仓库提供。当前没有完整基线 Release 附件，运行前需按 [发布范围与本地材料](DISTRIBUTION.md) 准备权重与动作。
 
 | 组件 | 12341 实际环境 |
 |---|---|
@@ -37,20 +37,20 @@ dex-sm check
 
 ## 转换环境
 
-内置 Dex v7 支持 BONES-SEED 的 SOMA Uniform BVH 和 LAFAN1 原始 BVH。求解使用 CPU NumPy / SciPy / MuJoCo，不需要 CUDA、PyTorch 或 mjlab；macOS 也可做转换。训练/特征构建的依赖仍按上节安装。为保留历史回放契约，基础环境的版本固定项不因 v7 接入而修改。
+内置 Dex V8 支持 BONES-SEED 的 SOMA Uniform BVH 和 LAFAN1 原始 BVH。求解使用 CPU NumPy / SciPy / MuJoCo / OSQP / Mink，不需要 CUDA、PyTorch 或 mjlab；macOS 也可做转换。训练/特征构建的依赖仍按上节安装。为保留历史回放契约，基础环境的版本固定项不因 V8 接入而修改。
 
 ```bash
 python -m pip install -e '.[convert]'
 export DEX_SUPERMIMIC_ROOT="$PWD"
 # 可省略：默认就是仓库根目录下 assets/dex_evt
 export DEX_ASSETS="$PWD/assets/dex_evt"
-dex-sm data convert --dataset bones_seed --manifest data/bones_seed/sources.jsonl --out data/bones_seed/processed_v7 --workers 1
-dex-sm data convert --dataset lafan1 --manifest data/lafan1/sources.jsonl --out data/lafan1/processed_v7 --workers 1
+dex-sm data convert --dataset bones_seed --manifest data/bones_seed/sources.jsonl --out data/bones_seed/processed_v8_constrained --workers 1
+dex-sm data convert --dataset lafan1 --manifest data/lafan1/sources.jsonl --out data/lafan1/processed_v8_constrained --workers 1
 ```
 
-必须准备 `model.json`、`mjcf/dex_29.xml`、对应网格及 `urdf/dex_29.urdf`；转换器校验模型哈希与关节顺序。人体校准资源随本包打包，不依赖维护者机器上的校准路径；机器人资产仍需单独准备。无需设置历史 `DEX_GMR_ROOT`、`DEX_MIMIC_ROOT`，也不从外部同名脚本导入转换函数。
+仓库已包含 `model.json`、`mjcf/dex_29.xml`、对应网格及 `urdf/dex_29.urdf`；转换器校验模型哈希与关节顺序。人体校准资源随本包打包，不依赖维护者机器上的校准路径；如使用外部资产，设置 `DEX_ASSETS`。无需设置历史 `DEX_GMR_ROOT`、`DEX_MIMIC_ROOT`，也不从外部同名脚本导入转换函数。
 
-v7 的独立预览、训练 NPZ 协议、缓存迁移与验证环境见 [转换说明](RETARGET_V7.md)。安装不会自动下载数据或机器人资产，不会启动训练。
+V8 的独立复验、训练 NPZ 协议、缓存迁移与验证环境见 [转换说明](RETARGET_V8.md)。安装不会自动下载数据；机器人资产已随仓库提供，也不会启动训练。
 
 ## ROS 环境
 
