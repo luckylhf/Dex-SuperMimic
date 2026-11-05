@@ -7,6 +7,8 @@ from types import SimpleNamespace
 import pytest
 
 from dex_supermimic.common import atomic, sha
+from dex_supermimic.data.retarget import QUALITY_POLICY
+from dex_supermimic.data.v8.self_collision import POLICY as COLLISION_POLICY
 from dex_supermimic.data.prepare import _convert, load_records, row_sha, source_row, training_rows
 from dex_supermimic.evaluation import evaluate as evaluation
 from dex_supermimic.training.lr_schedule import PolicyLRSchedule
@@ -15,14 +17,17 @@ from dex_supermimic.training.lr_schedule import PolicyLRSchedule
 @pytest.fixture
 def cached(tmp_path, monkeypatch):
     raw=tmp_path/'motion.bvh';raw.write_text('ROOT Hips\nJOINT LeftShin\nJOINT RightShin\nJOINT LeftHandIndex1\nJOINT RightHandIndex1\nMOTION\n')
-    identity={'backend':'dex_v7','dataset':'bones_seed'}
+    identity={'backend':'dex_v8','dataset':'bones_seed'}
     identity['fingerprint']=row_sha(identity)
     monkeypatch.setattr('dex_supermimic.data.prepare.conversion_identity',lambda dataset,**kwargs:dict(identity))
     artifact=tmp_path/'clip.npz';artifact.write_bytes(b'already converted output')
     row=dict(id='clip',source=str(raw),actor='actor_a',sampling_group='dance',anchor=True,evaluation_only=False)
     record=dict(row,source_sha256=sha(raw),output=str(artifact),output_sha256=sha(artifact),
                 frames=100,grade='A_kinematic_candidate',status='converted',train_eligible=True,split='train',
-                converter='dex_v7',resolved_dataset='bones_seed',converter_fingerprint=identity['fingerprint'],converter_identity=identity)
+                quality=dict(quality_policy=QUALITY_POLICY,flags=[],
+                             self_collision=dict(policy=COLLISION_POLICY,frames=100,collision_samples=0),
+                             step_velocity=dict(policy=QUALITY_POLICY,intervals=99,violating_intervals=0)),
+                converter='dex_v8',resolved_dataset='bones_seed',converter_fingerprint=identity['fingerprint'],converter_identity=identity)
     atomic(tmp_path/'records/clip.json',record)
     return tmp_path,row,artifact
 

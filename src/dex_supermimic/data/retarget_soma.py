@@ -1,15 +1,15 @@
-"""Compatibility entry: BONES-SEED SOMA Uniform → bundled v7 at 50 Hz."""
+"""Compatibility entry: BONES-SEED SOMA Uniform → bundled v8 at 50 Hz."""
 import argparse
 from pathlib import Path
 import warnings
-from .retarget import convert as convert_v7
+from .retarget import convert as convert_v8
 
 
 def convert(source, output, warm_frames=None):
     if warm_frames is not None:
-        warnings.warn('v7 uses sequence solving; warm_frames is ignored (no GMR priming).',
+        warnings.warn('v8 uses sequence solving; warm_frames is ignored (no GMR priming).',
                       DeprecationWarning, stacklevel=2)
-    convert_v7(source, output, dataset='bones_seed', fps=50.)
+    convert_v8(source, output, dataset='bones_seed', fps=50.)
     return Path(output)
 
 

@@ -1,8 +1,10 @@
 # Dex-SuperMimic
 
+> 当前 CPU 转换器为 **V8 脚部轻量精修版 + Mink 手臂避碰补丁（V8_cpu_support_20261105 / cpu_mink_arm_collision_20261105）**，支持 BONES-SEED: Skeletal Everyday Embodiment Dataset（SOMA Uniform BVH）和 Ubisoft La Forge Animation Dataset（LAFAN1）。自动检测双臂互碰及手臂与躯干、骨盆、髋部、头部碰撞，只对局部区间修复；保留物理限位、逐轴速度、J6/J7、肘窝及脚部规则。未解决的碰撞进入 B 类，不冒充 A 类。102 项测试（使用仓库内 `assets/dex_evt` 机器人资产）和固定 21 条完整旧轨迹的新增碰撞阶段回归通过；这不是全库重新转换。详见 [V8转换说明](docs/RETARGET_V8.md)。
+
 Dex-SuperMimic 让**一个策略**接受不同的参考动作，在 Dex 29 自由度机器人上执行全身跟踪。换参考不换权重：一支舞、一段新动作，只需替换参考特征即可直接跟踪，无需重新训练。
 
-技术路线沿用 SuperMimic 的**学习动力学世界模型 + 可微展开 BPTT 策略优化**，基于 InstantTrack 的 mjlab / MuJoCo Warp 实现；重定向使用内置 Dex v7，回放接入既有 ROS 2 / MuJoCo 链路。
+技术路线沿用 SuperMimic 的**学习动力学世界模型 + 可微展开 BPTT 策略优化**，基于 InstantTrack 的 mjlab / MuJoCo Warp 实现；重定向使用内置 Dex V8（逐轴限速拟合、固定骨架标定及分状态接触处理），回放接入既有 ROS 2 / MuJoCo 链路。
 
 ## 演示效果
 
@@ -14,14 +16,14 @@ Dex-SuperMimic 让**一个策略**接受不同的参考动作，在 Dex 29 自�
 
 ## 仓库内容
 
-本仓库以 **12341 EMA 策略及其控制契约**为整理基准，公开主流程源码、配置、测试、文档和上方三段演示 GIF。权重（checkpoint / ONNX）、编译模型、机器人资产及演示动作数据均未随 Git 发布；BONES-SEED / LAFAN1 训练集也需按 [数据说明](data/README.md) 另行获取。
+本仓库以 **12341 EMA 策略及其控制契约**为整理基准，公开主流程源码、配置、测试、文档、上方三段演示 GIF，以及 `assets/dex_evt/` 机器人资产。权重（checkpoint / ONNX）、编译模型及演示动作数据未随 Git 发布；BONES-SEED / LAFAN1 训练集也需按 [数据说明](data/README.md) 另行获取。
 
-**当前没有提供完整基线 ZIP 或 Release 附件。** `git clone` 和 GitHub 的 Download ZIP 都只取得仓库跟踪的文件，不能直接运行 12341 基线。所需材料与准备方式见 [发布范围与本地材料](docs/DISTRIBUTION.md)。
+**当前没有提供完整基线 ZIP 或 Release 附件。** `git clone` 和 GitHub 的 Download ZIP 会包含源码与机器人资产，但不含 12341 权重和参考动作，不能直接运行完整基线。所需材料与准备方式见 [发布范围与本地材料](docs/DISTRIBUTION.md)。
 
 
 ```text
 BONES-SEED（SOMA Uniform BVH） / LAFAN1（原始 BVH）
-    ↓ 内置 Dex v7：骨架校准、足部 XYZ 接触、手掌/肘轴与腕部限位
+    ↓ 内置 Dex V8，骨架校准、足部 XYZ 接触、手掌/肘轴与腕部限位
 Dex robot PKL（预览）+ 50 Hz robot NPZ（训练）→ 质量分级 → 有界特征分片
     ↓ 世界模型 + BPTT，参考动作轮换，保留难度记忆
 EMA checkpoint → ONNX + 机器人契约 / 编译模型
@@ -31,7 +33,7 @@ EMA checkpoint → ONNX + 机器人契约 / 编译模型
 
 ## 准备基线材料后回放
 
-以下命令仅适用于已自行取得匹配的 12341 权重、资产和参考动作的工作区。公开仓库不提供这些文件的完整下载包。请先按 [权重说明](checkpoints/12341/README.md)、[资产说明](assets/dex_evt/README.md) 和 [动作说明](data/evaluation/README.md) 准备下列本地文件；没有原始 12341 材料时，可使用后文训练入口训练自己的策略，但不能据此声称复现同一基线。
+以下命令仅适用于已自行取得匹配的 12341 权重和参考动作的工作区；机器人资产已随仓库提供，默认位于 `assets/dex_evt/`，说明见 [资产说明](assets/dex_evt/README.md)。公开仓库不提供权重和动作的完整下载包。请先按 [权重说明](checkpoints/12341/README.md) 和 [动作说明](data/evaluation/README.md) 准备下列本地文件；没有原始 12341 材料时，可使用后文训练入口训练自己的策略，但不能据此声称复现同一基线。
 
 ```text
 checkpoints/12341/
@@ -46,6 +48,8 @@ checkpoints/12341/
 assets/dex_evt/               # 完整 XML、网格、URDF、元数据与原始 LICENSE
 data/evaluation/             # motions、references、suite.json、download_manifest.json
 ```
+
+`assets/dex_evt/` 已随 Git 提供；`checkpoints/12341/` 和 `data/evaluation/` 中的权重、动作与清单仍需本地准备。
 
 材料齐备后，在仓库根目录安装 Linux 轻量回放依赖并执行校验；这一步不需要 CUDA、PyTorch、mjlab 或 BONES。`check_baseline.py` 需要上述两个原始清单及其列出的全部文件，源码克隆中缺少这些材料时无法通过：
 
@@ -63,43 +67,49 @@ DEX_EVALUATION_PROFILE=height_diagnostic_v1 dex-sm play --bundle checkpoints/123
 
 这会实际运行 CPU MuJoCo 闭环仿真，生成指标 JSON 和记录轨迹 NPZ；不是打开图形窗口。准备相应参考文件后，改用 `gbtc.npz` 或 `dance_girl_original_start.npz` 即可换动作。ROS 回放和比较视频入口见 [部署与评估](docs/DEPLOYMENT.md)。
 
-需要转换新动作或重新导出时，先准备对应的机器人动作、checkpoint 和资产，再安装 [训练/导出环境](docs/SETUP.md)。以下以本地 12341 材料为例，使用其他材料时替换路径：
+需要转换新动作或重新导出时，先准备对应的机器人动作和 checkpoint（机器人资产已随仓库提供），再安装 [训练/导出环境](docs/SETUP.md)。以下以本地 12341 材料为例，使用其他材料时替换路径：
 
 ```bash
 dex-sm bundle motion --source data/evaluation/motions/dance_boy.npz --out runs/baseline/dance_boy.reference.npz
 dex-sm bundle export --checkpoint checkpoints/12341/ckpt_012341.pt --out runs/reexport_12341/bundle
 ```
 
-输入为匹配 Dex 模型的机器人 NPZ；支持的人体 BVH 先经过内置 v7 转换，视频还需要独立的人体姿态提取。Robot PKL 不是 SMPL-X 模型。文件准备范围见 [发布范围与本地材料](docs/DISTRIBUTION.md)。
+输入为匹配 Dex 模型的机器人 NPZ；支持的人体 BVH 先经过内置 V8 转换，视频还需要独立的人体姿态提取。Robot PKL 不是 SMPL-X 模型。文件准备范围见 [发布范围与本地材料](docs/DISTRIBUTION.md)。
 
 ## 数据到训练
 
-当前数据转换入口已切换为 **Dex v7**，支持以下两个数据集：
+当前数据转换入口已切换为 **Dex V8**，支持以下两个数据集：
 
 | 数据集准确名称 | 本包使用的数据 | `--dataset` |
 |---|---|---|
 | [BONES-SEED: Skeletal Everyday Embodiment Dataset](https://huggingface.co/datasets/bones-studio/seed) | SOMA Uniform BVH | `bones_seed` |
 | [Ubisoft La Forge Animation Dataset（LAFAN1）](https://github.com/ubisoft/ubisoft-laforge-animation-dataset) | 官方原始 BVH | `lafan1` |
 
-SOMA 是此处使用的人体骨架表示，不是第三个数据集。v7 从原始 BVH 完整求解，支持骨盆/躯干校准、脚底几何与 XYZ 接触约束、手心方向、J3/J5 时序分配，以及 NASA 人体活动范围与机器人物理限位相交后的 J6/J7 约束。实现、检查边界与迁移步骤见 [v7 转换说明](docs/RETARGET_V7.md)。
+SOMA 是此处使用的人体骨架表示，不是第三个数据集。V8 从原始 BVH 完整求解，支持骨盆/躯干校准、脚底几何与 XYZ 接触约束、手心方向、J3/J5 时序分配，以及 NASA 人体活动范围与机器人物理限位相交后的 J6/J7 约束。
 
-旧 GMR 转换记录不能直接用于新 `data build`；请用新的 `processed_v7` 和 `release_v7` 目录重新转换、筛选和构建。历史 12341 权重、演示及统计仍属于旧基线，不代表用 v7 重训后的结果。
+V8 在导出后用每个关节相邻两帧的角度变化乘以采样率，与模型中同名关节的速度上限逐项比较。独立验收中，任一轴任一区间超出上限加 `0.0001 rad/s` 时会标记速度不合格；当前生成流程在最终导出前即拒绝此类结果，批次保留 C 级失败原因。记录中的 `quality.step_velocity` 给出超限区间总数、各关节计数、最坏关节与时间，中心差分保留为诊断。求解阶段按关节名读取电机速度上限，在整段时间轴上约束相邻帧角度变化。脚部接触精修保持限速；最终手臂时序拟合同时优化姿态与速度约束。首轮临时手臂拟合延后物理限速，最终双臂输出严格限速，减少腰部代偿。手掌与前臂沿用 V7 人体目标，不合入手臂目标分配试验。详见 [V8 转换与验收](docs/RETARGET_V8.md)。
+
+当前求解器身份为 `dex_v8_per_axis_velocity`，策略为 `per_axis_velocity_v8_mink_arm_recovery_v1`，固定原动作时长和 50 Hz 采样。旧的仅验收 V8 与 V7 缓存均拒绝复用；已有数据不自动修复，需要从 BVH 重新求解。快速动作无法同时满足速度和人体目标时，手姿或接触精度可能下降，由导出后的全项验收和局部回看报告标记。全片统计不能替代快速手势的局部检查。
+
+脚部坐标与动作接触分开：LAFAN1 使用官方参考人体模型生成的固定脚底方向和鞋底点，不要求每段包含站立；SOMA 保留 NVIDIA 固定脚部标记。地面是源场景坐标中的平面，可在配置中显式覆盖，不随脚或身体的最低点逐帧变化。站立继续使用平脚、脚尖、脚跟支撑及防滑；腾空不强制接地；手、膝、躯干等接触参考固定人体表面，滑动和滚动不锁死 XYZ。验收检查整机表面穿透和持续静止悬空，避免把倒立、躺卧仅因脚离地判坏。非脚部接触由几何和运动推断，未使用压力测量。详见 [V8 转换与验收](docs/RETARGET_V8.md)。
+
+旧版 PKL/NPZ 可用 `dex-sm data check-speed /path/to/motion.pkl` 单独复验速度。新训练库使用新的 `processed_v8_constrained` 和 `release_v8_constrained` 目录以及 V8 验收记录。历史 12341 权重、演示及统计属于原基线。
 
 [数据说明](data/README.md)规定来源清单、分类、转换和缓存。全部合格 BONES-SEED 数据参与训练；较难的库内片段只作难度探针，GBTC、dance-boy、dance-girl 作为外部开发评测，不进入训练。反复调参使用的外部动作也不应声称是独立测试集。
 
 ```bash
-# 安装内置 CPU 转换器；先准备 assets/dex_evt 中的机器人资产
+# 仓库已包含 assets/dex_evt；安装内置 CPU 转换器
 python -m pip install -e ".[convert]"
 export DEX_SUPERMIMIC_ROOT="$PWD"
-dex-sm data convert --dataset bones_seed --manifest data/bones_seed/sources.jsonl --out data/bones_seed/processed_v7 --workers 1
+dex-sm data convert --dataset bones_seed --manifest data/bones_seed/sources.jsonl --out data/bones_seed/processed_v8_constrained --workers 1
 # LAFAN1 单独转换、单独建库，不自动混入 BONES-SEED
-dex-sm data convert --dataset lafan1 --manifest data/lafan1/sources.jsonl --out data/lafan1/processed_v7 --workers 1
+dex-sm data convert --dataset lafan1 --manifest data/lafan1/sources.jsonl --out data/lafan1/processed_v8_constrained --workers 1
 # 训练环境；默认 CPU 构建特征，不与训练争抢 GPU
-dex-sm data build --records data/bones_seed/processed_v7/records --out data/bones_seed/release_v7
+dex-sm data build --records data/bones_seed/processed_v8_constrained/records --out data/bones_seed/release_v8_constrained
 # 从头训练基础跟踪器
-dex-sm train --config configs/train_fresh.json --data-release data/bones_seed/release_v7 --log_dir runs/base
+dex-sm train --config configs/train_fresh.json --data-release data/bones_seed/release_v8_constrained --log_dir runs/base
 # 显式增加根位置反馈；取已训练基础策略初始化，重建优化器和 critic
-dex-sm train --config configs/train_feedback.json --data-release data/bones_seed/release_v7 --warm_start runs/base/ckpt_NNNNNN.pt --log_dir runs/feedback
+dex-sm train --config configs/train_feedback.json --data-release data/bones_seed/release_v8_constrained --warm_start runs/base/ckpt_NNNNNN.pt --log_dir runs/feedback
 ```
 
 `NNNNNN` 替换成实际 checkpoint 编号。默认优先 8192 环境；显存不足时再降低环境数或批量。分片容量 60 万帧、150 秒轮换、CPU 预取、固定 GPU 张量存储、每次切换清空 replay 并预热 64 步。训练实时记录资源、分片切换、动作覆盖率和 loss。
@@ -132,7 +142,9 @@ C、D 等探索曾用于检验补充动作、困难片段采样和续训保持�
 - [InstantTrack](https://github.com/Huy-Quang-Dao/instantTrack)：核心网络、世界模型、BPTT 与 GPU 环境，MIT；保留 `instanttrack` 命名空间及许可证。
 - [mjlab](https://github.com/mujocolab/mjlab)：仿真基础设施，安装固定提交。
 - [Dex-Video2Robot](https://github.com/luckylhf/Dex-Video2Robot)：历史转换链及机器人资产来源。
-- [NVIDIA SOMA Retargeter](https://github.com/NVIDIA/soma-retargeter) 与 [GMR](https://github.com/YanjieZe/GMR)：v7 的人体校准、接触处理及 LAFAN1→G1 坐标参考；v7 是面向 Dex 的本地实现，不是官方 Dex 转换器。
+- [NVIDIA SOMA Retargeter](https://github.com/NVIDIA/soma-retargeter) 与 [GMR](https://github.com/YanjieZe/GMR)：人体校准、接触处理及 LAFAN1→G1 坐标参考；本仓库转换器是面向 Dex 的本地实现，不是官方 Dex 转换器。
 - [BONES-SEED](https://huggingface.co/datasets/bones-studio/seed) 与 [LAFAN1](https://github.com/ubisoft/ubisoft-laforge-animation-dataset)：人体动作来源，使用者须遵守各自许可。
 
 详细来源与许可边界见 [THIRD_PARTY.md](THIRD_PARTY.md)。
+
+脚部支撑最终验收：位置误差及穿地容差统一为 **1 mm**；求解仍以精确贴地为目标，腕部/肘窝/逐轴限速与手臂避碰间隙不变。旧动作评级不会自动刷新。

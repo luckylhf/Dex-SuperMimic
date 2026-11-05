@@ -12,7 +12,7 @@ import sys
 import traceback
 from dex_supermimic.common import atomic, sha, stamp
 from dex_supermimic.paths import ASSETS
-from .retarget import resolve_dataset, conversion_identity, validate_record_identity, DATASETS
+from .retarget import resolve_dataset, conversion_identity, validate_record_identity, DATASETS, CONVERTER, QUALITY_POLICY
 
 TARGETS = {'dance': .40, 'locomotion': .25, 'stationary_upper': .25, 'dynamic': .10}
 
@@ -66,16 +66,44 @@ def load_records(directory):
         return selected  # Records removed from the current manifest cannot re-enter training.
     return list(records.values())  # Explicit legacy records import; membership is still checked below.
 
+def require_v8_acceptance(record):
+    if record.get('converter') != CONVERTER:
+        raise ValueError('Legacy conversion requires V8 acceptance: '+record['id'])
+    if record.get('status') == 'failed' and record.get('grade') == 'C_failed':
+        return
+    quality = record.get('quality', {})
+    step = quality.get('step_velocity', {})
+    if (quality.get('quality_policy') != QUALITY_POLICY or step.get('policy') != QUALITY_POLICY
+            or step.get('intervals') != record['frames'] - 1
+            or not isinstance(step.get('violating_intervals'), int)):
+        raise ValueError('Missing V8 adjacent speed evidence: '+record['id'])
+    flagged = 'joint_velocity_exceeds_model_limit' in quality['flags']
+    expected_grade = 'B_needs_repair' if quality['flags'] else 'A_kinematic_candidate'
+    if (not 0 <= step['violating_intervals'] <= step['intervals']
+            or flagged != (step['violating_intervals'] > 0) or record['grade'] != expected_grade):
+        raise ValueError('Inconsistent V8 acceptance evidence: '+record['id'])
+    collision = quality.get('self_collision')
+    from .v8.self_collision import POLICY as COLLISION_POLICY
+    if (not isinstance(collision, dict) or collision.get('policy') != COLLISION_POLICY
+            or collision.get('frames') != record['frames']
+            or not isinstance(collision.get('collision_samples'), int)
+            or collision['collision_samples'] < 0):
+        raise ValueError('Missing V8 arm collision evidence: '+record['id'])
+    if (('arm_self_collision_unresolved' in quality['flags']) != (collision['collision_samples'] > 0)):
+        raise ValueError('Inconsistent V8 arm collision evidence: '+record['id'])
+
+
 def training_rows(records):
     rows = []
     identities = {}
     for r in records:
+        require_v8_acceptance(r)
         if r.get('grade') != 'A_kinematic_candidate': continue
         if r.get('evaluation_only'):
             raise ValueError('External evaluation motion marked as training: '+r['id'])
         dataset = r.get('resolved_dataset')
-        if r.get('converter') != 'dex_v7' or dataset not in DATASETS:
-            raise ValueError('Legacy conversion must be regenerated from BVH with v7: '+r['id'])
+        if r.get('converter') != CONVERTER or dataset not in DATASETS:
+            raise ValueError('Legacy conversion requires V8 acceptance: '+r['id'])
         if dataset not in identities: identities[dataset] = conversion_identity(dataset, include_runtime=False)
         validate_record_identity(r, identities[dataset])
         rows.append(dict(r, split='train'))
@@ -109,8 +137,9 @@ def _convert(task):
         old = json.loads(record.read_text())
         if old.get('source_sha256') != sha(row['source']): raise ValueError('Changed source: '+row['id'])
         if old.get('output') and sha(old['output']) != old['output_sha256']: raise ValueError('Changed output: '+row['id'])
-        if old.get('converter') != 'dex_v7' or old.get('converter_fingerprint') != identity['fingerprint']:
-            raise ValueError('Legacy or stale conversion; use a new output directory for v7: '+row['id'])
+        if old.get('converter') != CONVERTER or old.get('converter_fingerprint') != identity['fingerprint']:
+            raise ValueError('Legacy or stale conversion; use a new output directory for V8: '+row['id'])
+        require_v8_acceptance(old)
         refreshed = with_metadata(old, row)
         if refreshed != old:
             refreshed['metadata_updated_at'] = stamp()
@@ -119,13 +148,13 @@ def _convert(task):
     work = output/'work'/row['id']
     work.mkdir(parents=True, exist_ok=False)
     rec = dict(row, source_sha256=sha(row['source']), started_at=stamp(),
-               dynamic_status='not_tested_by_controller', split='train', converter='dex_v7',
+               dynamic_status='not_tested_by_controller', split='train', converter=CONVERTER,
                converter_fingerprint=identity['fingerprint'], converter_identity=identity,
                resolved_dataset=dataset)
     try:
         from .retarget import convert
-        from .v7.audit import audit
-        from .quality_v7 import quality
+        from .v8.audit import audit
+        from .quality_v8 import quality
         from .training_format import export_training_npz
         pkl = work/'motion.pkl'
         meta = convert(row['source'], pkl, dataset=dataset, fps=50.)
@@ -170,8 +199,14 @@ def convert_dataset(args):
         if not Path(row['source']).is_file(): raise FileNotFoundError(row['source'])
         resolve_dataset(row['source'], row['dataset'])
     out = Path(args.out).resolve()
+    old_catalog = out/'catalog.json'
+    if old_catalog.exists():
+        if json.loads(old_catalog.read_text()).get('converter') != CONVERTER:
+            raise ValueError('Refusing to overwrite an earlier catalog; choose processed_v8')
+    elif any(p.is_dir() and next(p.iterdir(), None) is not None for p in (out/'records', out/'work', out/'motions')):
+        raise ValueError('Refusing an unversioned conversion directory; choose processed_v8')
     for folder in ('records','motions','work'): (out/folder).mkdir(parents=True, exist_ok=True)
-    catalog = dict(status='converting',records={r['id']:row_sha(r) for r in rows},
+    catalog = dict(status='converting',converter=CONVERTER,quality_policy=QUALITY_POLICY,records={r['id']:row_sha(r) for r in rows},
                    source_manifest_sha256=sha(args.manifest))
     atomic(out/'catalog.json',catalog)
     # Child processes import numerical libraries after these limits are established.
@@ -219,7 +254,7 @@ def build_release(args):
     (out/'features').mkdir()
     manifest = dict(complete=False, snapshot=False, train_clips=len(rows), train_frames=sum(r['frames'] for r in rows),
                     anchors=len(anchors), shards=n, frame_capacity=args.capacity,
-                    grades=dict(Counter(r.get('grade') for r in records)), training_policy='all_qualified',
+                    grades=dict(Counter(r.get('grade') for r in records)), training_policy='all_qualified',converter=CONVERTER,quality_policy=QUALITY_POLICY,
                     created_at=stamp(), internal_probes_are_heldout=False)
     atomic(out/'manifest.json', manifest)
     robot = get_robot('dex'); kin = Kinematics(robot,args.device); index = []
@@ -265,6 +300,11 @@ def import_release(args):
     atomic(out/'features/index.json',index)
     print('Imported',len(resolved),'verified shards;', 'copied' if args.copy_packs else 'linked', 'packs')
 
+def check_speed_file(args):
+    from .quality_v8 import check_speed
+    print(json.dumps(check_speed(args.motion), indent=2))
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__); s=p.add_subparsers(dest='command',required=True)
     c=s.add_parser('convert');c.add_argument('--manifest',required=True);c.add_argument('--out',required=True)
@@ -274,6 +314,7 @@ def main():
     b.add_argument('--capacity',type=int,default=600000);b.add_argument('--device',default='cpu');b.add_argument('--threads',type=int,default=4);b.set_defaults(fn=build_release)
     i=s.add_parser('import');i.add_argument('--source',required=True);i.add_argument('--out',required=True)
     i.add_argument('--copy-packs',action='store_true');i.set_defaults(fn=import_release)
+    q=s.add_parser('check-speed',help='Read-only adjacent speed report for a trusted Dex PKL/NPZ');q.add_argument('motion');q.set_defaults(fn=check_speed_file)
     a=p.parse_args();a.fn(a)
 
 if __name__=='__main__':main()
