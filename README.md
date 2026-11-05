@@ -1,6 +1,6 @@
 # Dex-SuperMimic
 
-> 当前 CPU 转换器为 **V8 脚部轻量精修版 + Mink 手臂避碰补丁（V8_cpu_support_20261105 / cpu_mink_arm_collision_20261105）**，支持 BONES-SEED: Skeletal Everyday Embodiment Dataset（SOMA Uniform BVH）和 Ubisoft La Forge Animation Dataset（LAFAN1）。自动检测双臂互碰及手臂与躯干、骨盆、髋部、头部碰撞，只对局部区间修复；保留物理限位、逐轴速度、J6/J7、肘窝及脚部规则。未解决的碰撞进入 B 类，不冒充 A 类。102 项测试（使用仓库内 `assets/dex_evt` 机器人资产）和固定 21 条完整旧轨迹的新增碰撞阶段回归通过；这不是全库重新转换。详见 [V8转换说明](docs/RETARGET_V8.md)。
+> 当前 CPU 转换器为 **V8 脚部轻量精修版 + Mink 手臂避碰补丁（V8_cpu_support_20261105 / cpu_mink_arm_collision_20261105）**，支持 BONES-SEED: Skeletal Everyday Embodiment Dataset（SOMA Uniform BVH）和 Ubisoft La Forge Animation Dataset（LAFAN1）。自动检测双臂互碰及手臂与躯干、骨盆、髋部、头部碰撞，只对局部区间修复；保留物理限位、逐轴速度、J6/J7、肘窝及脚部规则。未解决的碰撞进入 B 类，不冒充 A 类。109 项测试（使用仓库内 `assets/dex_evt` 机器人资产）和固定 21 条完整旧轨迹的新增碰撞阶段回归通过；这不是全库重新转换。详见 [V8转换说明](docs/RETARGET_V8.md)。
 
 Dex-SuperMimic 让**一个策略**接受不同的参考动作，在 Dex 29 自由度机器人上执行全身跟踪。换参考不换权重：一支舞、一段新动作，只需替换参考特征即可直接跟踪，无需重新训练。
 
