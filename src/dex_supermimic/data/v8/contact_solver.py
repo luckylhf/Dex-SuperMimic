@@ -35,7 +35,7 @@ def feasible_projection(candidate,A,lower,upper):
     return point,dict(status='independent_linear_feasibility_projection',iterations=int(result.nit),constraint_excess=excess,optimal_status=False,projection_change=float(np.max(abs(point-candidate))))
 
 
-def refine(robot,t,xs,cfg,progress=None):
+def refine(robot,t,xs,cfg,progress=None,objective_factory=None):
     if 'body_contacts' not in t:return xs,[]
     out=xs.copy();reports=[];robot.body_contact_qp_summary={'steps':0,'feasible_budget_steps':0,'normalized_retries':0,'feasibility_projections':0,'maximum_constraint_excess':0.};step=robot.joint_step(t['fps'],cfg);previous=None;predicted=None
     feet={g['foot'] for g in robot.sides.values()}
@@ -72,8 +72,11 @@ def refine(robot,t,xs,cfg,progress=None):
             needed=needed or np.linalg.norm(previous[:3]-xs[i-1,:3])>1e-4
         if not needed:
             out[i]=base;predicted=base if previous is None else base+np.clip(base-previous,-.1,.1);previous=base.copy();continue
-        obj=Objective(robot,t,i,cfg,previous,predicted)
+        factory=Objective if objective_factory is None else objective_factory
+        obj=factory(robot,t,i,cfg,previous,predicted)
         lo=robot.lower.copy();hi=robot.upper.copy()
+        if 'repair_lower_bounds' in t:
+            lo=np.maximum(lo,t['repair_lower_bounds'][i])
         if previous is not None:
             lo[3:]=np.maximum(lo[3:],previous[3:]-step+1e-8)
             hi[3:]=np.minimum(hi[3:],previous[3:]+step-1e-8)

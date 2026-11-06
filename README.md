@@ -1,5 +1,7 @@
 # Dex-SuperMimic
 
+> **仓库最终版本（归档）**：本仓库是 Dex 参考 SuperMimic 的最后一个版本，`dex-supermimic 0.1.9`，2026-11-06 冻结。技术路线（学习动力学世界模型 + 可微展开 BPTT）与 Dex V8 转换器不再迭代，后续 Dex 全身跟踪转向 BlinkMimic 训练核心演进。此处的代码、转换器与发布回执仅作 SuperMimic 路线的最终快照保留。
+
 > 当前 CPU 转换器为 **V8 自动联合手臂避碰版（V8_cpu_coupled_arms_20261105）**。默认流程会同时考虑穿透碰撞和修复窗口内不足 3.5 mm 间距的碰撞对，自动选择需要联合修复的手臂。保持原有支撑接触保护、物理限位、逐轴速度、失败回滚和最终审核。111 项测试通过；历史 21 条碰撞阶段回归不冒充本补丁的新验证。详见 [本次合入记录](docs/V8_COUPLED_ARMS_20261105.md)。
 
 > **V8 最终版本**：`V8_cpu_coupled_arms_20261105`（`dex-supermimic 0.1.9`）是 V8 系列的最后一个版本，V8 系列此后停止迭代。发布回执见 [V8_COUPLED_ARMS_20261105](docs/V8_COUPLED_ARMS_20261105.md) 与 [V8_FINAL_RELEASE.json](V8_FINAL_RELEASE.json)。
