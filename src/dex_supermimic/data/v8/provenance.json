@@ -26,8 +26,24 @@
     "dex_retarget/trajectory.py": "0a9cddeb044928fdcf41567bec5a4ef9083009c6e912f0027ce6adbc064fa2d3"
   },
   "release": "V8_cpu_coupled_arms_20261105",
-  "validation_scope": "111 tests without skips for margin-aware default arm selection; per-motion verification tracked in V8_FINAL_RELEASE.json; no full-library reconversion",
+  "validation_scope": "111 tests without skips for margin-aware default arm selection; per-motion verification tracked in V8_FINAL_RELEASE.json; no full-library reconversion; default-path bit-equivalence rechecked against the pre-sync implementation on the synthetic wrist/hip case (2026-11-06)",
   "implementation_patch": "cpu_mink_margin_aware_arm_selection_20261105",
+  "sync_with_retarget": {
+    "date": "2026-11-06",
+    "source": "Dex-Retarget/src/dex_frax/v8",
+    "synced_files": {
+      "contact_solver.py": "f883f86775eeec834c0d210430cf8b73d512411eaf121222a8f30d29ea1ab13a",
+      "self_collision.py": "cf3013485a3bc1f9994ef0d608e2488fef309dcd5406ffba8273dddcbfd44f5d"
+    },
+    "not_synced": {
+      "convert.py": "Retarget orchestration depends on dex_frax-only stages (input_errors, contact_transition, initial_reuse, graduated_collision, local_refine, adaptive_refine, fast_collision, identity) and drops the hard joint-speed gate; this package keeps its single-pass V8 pipeline and refuses oversized speeds before export",
+      "robot.py": "Differs only in the package-relative asset import and Retarget's model_cache loader; identical physics identity"
+    },
+    "added_behaviour": "objective_factory and repair_lower_bounds hooks in the body-contact solver; options-gated coupled joint-arm repair with per-frame margin targets in the self-collision repair",
+    "dormant": "No caller in this package passes options, so the coupled repair and margin-target branches stay inactive here; the default V8 path is unchanged",
+    "default_path_equivalence": "Same 9-frame synthetic wrist/hip case: identical output array (max abs diff 0.0), identical before/after scan reports and window records apart from the added 'coupled' field",
+    "verification": "111 tests pass after the sync; no motion library reconversion, no controller or hardware validation"
+  },
   "support_acceptance_m": 0.001,
   "historical_validation_scope": "102 tests without skips; 21 complete cached motions through new collision stage and full pose audit; no full-library reconversion"
 }
