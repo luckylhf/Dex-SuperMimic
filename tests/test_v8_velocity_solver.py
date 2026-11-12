@@ -67,10 +67,18 @@ def test_local_review_finds_large_short_loss_hidden_by_whole_clip_p95():
     assert compare_local_errors(old,small,50.)['material_window_count']==0
 
 
-def test_fixed_source_foot_profile_needs_no_standing_or_ground_observation():
+def test_fixed_source_foot_profile_needs_no_standing_or_ground_observation(monkeypatch):
     from types import SimpleNamespace
     from scipy.spatial.transform import Rotation
     from dex_supermimic.data.v8.source_profile import lafan_foot
+    # This synthetic calibration keeps the test independent of local dataset assets.
+    monkeypatch.setattr('dex_supermimic.data.v8.source_profile.load_geometry', lambda: {
+        'fbx_sha256': 'synthetic', 'feet': {'Left': {
+            'sole_up_local_in_foot': [0., 1., 0.], 'forward_local_in_foot': [1., 0., 0.],
+            'heel_local_in_foot': [-.02, -.03, 0.], 'toe_local_in_foot': [.2, -.03, 0.],
+            'geometry': 'synthetic test shoe', 'gmr_to_surface_correction_deg': 0.,
+        }},
+    })
     n=100
     motion=SimpleNamespace(names=['LeftFoot','LeftToe'],parents=np.array([-1,0]),offsets=np.array([[0,0,0],[.173,0,0]]))
     foot=Rotation.from_euler('x',np.linspace(0,360,n)[:,None],degrees=True).as_matrix()

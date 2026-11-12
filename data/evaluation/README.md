@@ -1,6 +1,6 @@
 # 外部评估动作
 
-公开仓库在本目录仅提供本说明，不包含 GBTC、dance-boy、dance-girl 的机器人 NPZ、参考特征或 `suite.json`，也没有提供这些数据的 Release 附件。`download_manifest.json` 和 `LOCAL_FILES.md` 属于维护者本地归档，未随 Git 发布。仓库展示的 GIF 不能作为回放输入；`videos/` 中的原视频仅保留本地，已有 NPZ 参考的评估不依赖这些视频。
+本目录公开提供评估准备说明。GBTC、dance-boy、dance-girl 的机器人动作、参考特征和原视频按本地材料管理，`suite.json`、`download_manifest.json` 和 `LOCAL_FILES.md` 随本地材料保存。已有 NPZ 参考可直接用于评估。演示 GIF 位于 `docs/`，可在根 README 查看。
 
 这里放自有 / 已授权的 GBTC、dance-boy、dance-girl 或其他新动作；它们没有本仓库可公开提供的统一下载地址。由视频先提取人体动作，再经现有 Dex-GMR / Dex-Mimic 得到匹配模型的机器人 NPZ。
 

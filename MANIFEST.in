@@ -1,0 +1,10 @@
+include THIRD_PARTY.md
+recursive-include LICENSES *.txt
+global-exclude lafan1_surfaces.json fbx_bind_geometry.json
+global-exclude *.fbx *.FBX *.npz *.pkl *.pt *.onnx *.mjb *.mp4 *.gif
+global-exclude *.csv *.parquet *.jsonl *.usd *.usda *.usdc *.bvh
+global-exclude *.ckpt *.pth *.safetensors
+include src/dex_supermimic/data/v8/reference/soma_zero.bvh
+include docs/gbtc_best_vs_latest.gif
+include docs/dance_boy_best_vs_latest.gif
+include docs/dance_girl_best_vs_latest.gif

@@ -1,6 +1,6 @@
 # 12341 基线
 
-本文记录原始 12341 的配置和历史结果。当前公开仓库不包含该基线的权重、完整训练状态或数据，亦未提供 Release 附件；续训示例须先自行准备匹配材料，见 [发布范围与本地材料](DISTRIBUTION.md)。
+本文记录 12341 的配置和历史结果。回放及续训前，先按[材料说明](DISTRIBUTION.md)准备匹配的权重和数据。
 
 基线采用 EMA actor，即 checkpoint 中的 `pi`。`pi_live` 是在线更新权重，不能在评估时与 EMA 混用。
 
@@ -10,13 +10,15 @@
 
 ## 数据与训练配方
 
+Training data includes Motion Data by Bones Studio. Use of the underlying dataset is subject to the BONES Motion Capture Dataset License Agreement. [Bones Studio](https://bones.studio/) · [BONES-SEED license](https://bones.studio/info/seed-license)
+
 原全量准备候选 52,063 条，最终 A 级 41,043 条，B 级 5,262 条，C 级 5,758 条。A 级总计 14,155,221 帧，约 78.6 小时；A 表示运动学筛选合格候选，不代表每条动作已被控制器完整跟踪。
 
 全部 A 级参与训练。30 个有界分片，每片容量 600,000 帧，285 条锚点复用在各片中；因此分片帧数总和包含重复锚点，不等于独立数据时长。分类质量分配为舞蹈 40%、移动 25%、原地上身 25%、动态 10%；每类锚点 25%、新增 75%，类内先均衡演员再均衡片段。缺失分类时重新归一化。新数据构建器允许无锚点，不强制凑成 285 条。
 
 `train_baseline.json` 保留 12341 所属反馈阶段的主要超参数：8192 环境、512 replay steps、horizon 16、WM window 8、batch 4096、5 次 WM 更新、UTD 0.4、EMA 0.995、bf16、融合 Adam、编译、参考前馈和根反馈。分片 150 秒轮换，保留按来源 ID / 相对秒记录的难度统计，切换时清空旧 replay 索引并预热。
 
-原 12341 先继承已训练的基础 actor / WM，再训练根反馈，随后完整状态恢复续训。公开入口的 `train_fresh.json` 是从随机初始化开始的基础配方，`train_feedback.json` 是追加根反馈的配方；它们不声称重放原始所有随机数和调度就能精确恢复同一个权重。
+原 12341 先继承已训练的基础 actor / WM，再训练根反馈，随后完整状态恢复续训。公开入口的 `train_fresh.json` 是从随机初始化开始的基础配方，`train_feedback.json` 是追加根反馈的配方；重新训练的结果会随随机种子和调度变化。
 
 ## 恢复与停止
 
@@ -34,7 +36,7 @@ dex-sm train --config configs/train_baseline.json --data-release data/bones_seed
 - 旧 checkpoint 缺少阶段起点，无法精确恢复其历史调度时间；上述迁移保证边界连续，不声称还原所有历史时刻。启动时的 `policy_lr_schedule.json` 记录采用的方式。
 - 只有确实要开启一条新曲线时，才使用 `--reset_pi_schedule`；这会按当前 `--pi_lr`、剩余预算和 `--freeze_pi_iters` 重置调度。普通 resume 中这些参数不会覆盖已保存的策略曲线。WM / critic 仍按当前 `--wm_lr` 配置。
 
-旧版恢复会把约 `1.96e-5` 重新设为接近 `6e-5`，本次已修复。尚无证据证明这个跳变就是过去续训退化的原因；原 12341 权重和历史成绩保持不变。
+
 
 停止文件出现后，在当前更新结束时保存最终 checkpoint 并退出：
 

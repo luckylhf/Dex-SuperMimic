@@ -11,6 +11,7 @@ import numpy as np
 from scipy.spatial import ConvexHull
 from scipy.spatial.transform import Rotation
 from .math3d import frame_xz,frame_yz,runs,smoother
+from .lafan_geometry import load_geometry
 
 _SURFACE_CACHE={}
 
@@ -84,9 +85,10 @@ def prepare(t,robot,cfg,enabled=True):
     robot.set(np.r_[0.,0.,1.,np.zeros(29)],np.eye(3))
     shape=robot.surface_models;models=[]
     source_surface=None
-    if t['source_type'] in ('lafan','soma'):
-        filename='lafan1_surfaces.json' if t['source_type']=='lafan' else 'soma_surfaces.json'
-        source_surface=json.loads(Path(__file__).with_name('reference').joinpath(filename).read_text())
+    if t['source_type']=='lafan':
+        source_surface=load_geometry()
+    elif t['source_type']=='soma':
+        source_surface=json.loads(Path(__file__).with_name('reference').joinpath('soma_surfaces.json').read_text())
     def add(key,body,source_pos,source_rot,neutral_origin,neutral_rot):
         if body not in shape:return
         v=shape[body]['hull'];world=v@robot.rot(body).T+robot.point(body)

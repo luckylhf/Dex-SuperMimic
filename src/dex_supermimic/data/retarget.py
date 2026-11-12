@@ -57,13 +57,18 @@ def conversion_identity(dataset, *, include_runtime=True):
     meshdir = compiler.get('meshdir', '') if compiler is not None else ''
     meshes = {(model.parent/meshdir/m.get('file')).resolve() for m in xml.findall('./asset/mesh') if m.get('file')}
     geometry = {str(p.relative_to(ASSETS.resolve())):sha(p) for p in sorted(meshes)}
-    files = [p for p in SOLVER_ROOT.rglob('*') if p.is_file() and p.suffix in ('.py', '.json', '.bvh')]
+    files = [p for p in SOLVER_ROOT.rglob('*') if p.is_file() and p.suffix in ('.py', '.json', '.bvh', '.c')
+             and p.name != 'lafan1_surfaces.json']
     files += [ROOT/n for n in ('prepare.py', 'retarget.py', 'training_format.py', 'quality_pose.py', 'quality_pose.json', 'quality_v8.py')]
     versions = {name: importlib.metadata.version(name) for name in ('numpy', 'scipy', 'mujoco', 'osqp', 'mink', 'qpsolvers')} if include_runtime else None
     identity = dict(converter_release=CONVERTER_RELEASE, backend=CONVERTER, pose_solver=POSE_SOLVER, solver_policy=SOLVER_POLICY, quality_policy=QUALITY_POLICY, dataset=dataset, source_type=DATASETS[dataset][0], fps=50.,
                     model_sha256=sha(model), urdf_sha256=sha(urdf), manifest_sha256=sha(ASSETS/'model.json'),
                     mesh_sha256=geometry,
                     implementation={str(p.relative_to(ROOT)):sha(p) for p in sorted(files)})
+    if dataset == 'lafan1':
+        from .v8.lafan_geometry import geometry_path, load_geometry
+        load_geometry()
+        identity['implementation']['v8/reference/lafan1_surfaces.json'] = sha(geometry_path())
     if include_runtime: identity['runtime_versions'] = versions
     digest = hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
     return dict(identity, fingerprint=digest)

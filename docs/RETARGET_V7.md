@@ -37,7 +37,7 @@ NASA 提供的是人体单轴范围，软范围、左右轴符号与物理限位
 
 ## 使用与接口
 
-在仓库根目录安装（机器人资产已随仓库提供）：
+以下命令仅适用于历史 V7 代码快照。当前版本的 `data convert` 使用 V8，请按 [V8 文档](RETARGET_V8.md)操作。
 
 ```bash
 python -m pip install -e '.[convert]'
@@ -64,12 +64,12 @@ dex-sm data build --records data/lafan1/processed_v7/records --out data/lafan1/r
 |---|---|
 | `work/<id>/motion.pkl` | `root_pos`、XYZW `root_rot`、`dof_pos`、29 个 `joint_names`；用配套 URDF 预览 |
 | `work/<id>/motion.json` | 来源、模型、校准、配置、接触段、腕部限位和求解记录 |
-| `work/<id>/motion.npz` | 预览 PKL 的同布局版本，不能当训练 NPZ |
+| `work/<id>/motion.npz` | 预览 PKL 的同布局版本，用于预览 |
 | `work/<id>/motion.check.json` | 导出后 FK 检查、手臂方向、接触 XYZ、脚底高度与姿态误差 |
 | `motions/<id>.npz` | 50 Hz、WXYZ、`root_joint_lossless_v1`、模型 SHA 与严格关节名顺序，供现有训练读取器 |
 | `records/<id>.json` | 质量等级、来源/产物哈希、转换器指纹、数值库版本及清单元数据 |
 
-训练导出只做字段布局和 XYZW→WXYZ 分量重排，不再次求解或插值。`instanttrack/motion.py`、`kinematics.py` 及现有训练/控制参数保持不变。历史 `retarget_soma.convert` 导入仍可用，内部改为 BONES-SEED V8、50 Hz；显式传入旧 `warm_frames` 会产生弃用提示，不再伪造 GMR 预热。
+训练导出只做字段布局和 XYZW→WXYZ 分量重排，不再次求解或插值。`instanttrack/motion.py`、`kinematics.py` 及现有训练/控制参数保持不变。历史 `retarget_soma.convert` 导入仍可用，内部改为 BONES-SEED V8、50 Hz；显式传入旧 `warm_frames` 会产生弃用提示，不再执行 GMR 预热。
 
 当前统一操作入口与目录见 [V8 文档](RETARGET_V8.md)。本页的 V7 命令和数据数量仅作历史说明。
 

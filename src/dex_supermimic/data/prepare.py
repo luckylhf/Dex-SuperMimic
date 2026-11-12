@@ -188,6 +188,7 @@ def convert_dataset(args):
     if not rows: raise ValueError('Empty source manifest')
     if args.workers < 1: raise ValueError('workers must be positive')
     seen = set()
+    resolved_datasets = set()
     for row in rows:
         required = {'id', 'source', 'actor', 'sampling_group'}
         if not required <= row.keys(): raise ValueError('Manifest requires '+str(sorted(required)))
@@ -197,7 +198,10 @@ def convert_dataset(args):
         path = Path(row['source']).expanduser()
         row['source'] = str((Path(args.manifest).resolve().parent/path).resolve() if not path.is_absolute() else path)
         if not Path(row['source']).is_file(): raise FileNotFoundError(row['source'])
-        resolve_dataset(row['source'], row['dataset'])
+        resolved_datasets.add(resolve_dataset(row['source'], row['dataset']))
+    if 'lafan1' in resolved_datasets:
+        from .v8.lafan_geometry import load_geometry
+        load_geometry()
     out = Path(args.out).resolve()
     old_catalog = out/'catalog.json'
     if old_catalog.exists():
@@ -307,6 +311,8 @@ def check_speed_file(args):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__); s=p.add_subparsers(dest='command',required=True)
+    from .v8.prepare_lafan_geometry import add_parser
+    add_parser(s)
     c=s.add_parser('convert');c.add_argument('--manifest',required=True);c.add_argument('--out',required=True)
     c.add_argument('--dataset',choices=['auto',*DATASETS],default='auto')
     c.add_argument('--workers',type=int,default=1);c.set_defaults(fn=convert_dataset)

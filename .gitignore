@@ -9,21 +9,27 @@ runs/
 logs/
 .env
 .env.*
-data/**
-!data/**/
-!data/**/README.md
+/data/**
+!/data/README.md
+!/data/bones_seed/
+!/data/bones_seed/README.md
+!/data/evaluation/
+!/data/evaluation/README.md
+!/data/lafan1/
+!/data/lafan1/README.md
 # Robot assets are shipped in Git; other asset trees remain local.
-assets/**
-!assets/**/
-!assets/dex_evt/**
-!assets/**/README.md
-checkpoints/**
-!checkpoints/**/
-!checkpoints/**/README.md
-external/**
-!external/**/
-!external/**/README.md
+/assets/**
+!/assets/dex_evt/
+!/assets/dex_evt/**
+/checkpoints/**
+!/checkpoints/12341/
+!/checkpoints/12341/README.md
+/external/**
+!/external/README.md
 *.pt
+*.ckpt
+*.pth
+*.safetensors
 *.onnx
 *.mjb
 *.bvh
@@ -31,9 +37,18 @@ external/**
 *.npz
 *.pkl
 *.mp4
+*.gif
+!/docs/gbtc_best_vs_latest.gif
+!/docs/dance_boy_best_vs_latest.gif
+!/docs/dance_girl_best_vs_latest.gif
 *.zip
 *.zip.sha256
 *.tar*
+*.7z
+*.rar
+*.csv
+*.parquet
+*.jsonl
 
 # Copyrighted evaluation videos must remain local.
 /data/evaluation/videos/
@@ -41,3 +56,8 @@ external/**
 # macOS metadata must never be tracked, including under the asset whitelist.
 .DS_Store
 ._*
+
+# LAFAN model geometry is generated and used locally under the dataset license.
+lafan1_surfaces.json
+fbx_bind_geometry.json
+*.[fF][bB][xX]

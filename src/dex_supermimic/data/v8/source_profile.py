@@ -3,6 +3,7 @@ import hashlib,json
 from pathlib import Path
 import numpy as np
 from .math3d import frame_xz
+from .lafan_geometry import load_geometry
 
 
 def lafan_foot(motion,p,r,side):
@@ -23,7 +24,7 @@ def lafan_foot(motion,p,r,side):
     delta=relative-relative[0]
     if np.max(abs(delta))>1e-4:
         raise ValueError('Articulated or altered LAFAN toe rig needs an explicit geometry profile')
-    surface=json.loads(Path(__file__).with_name('reference').joinpath('lafan1_surfaces.json').read_text())
+    surface=load_geometry()
     foot=surface['feet'][side]
     local_up=np.array(foot['sole_up_local_in_foot']);local_forward=np.array(foot['forward_local_in_foot'])
     frame=frame_xz(r[ankle]@local_forward,r[ankle]@local_up)

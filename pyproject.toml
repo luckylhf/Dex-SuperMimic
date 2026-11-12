@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dex-supermimic"
-version = "0.1.9"
+version = "0.1.10"
 description = "Dex whole-body motion tracking with a learned world model and BPTT"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -25,7 +25,10 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "dex_supermimic.data" = ["quality_pose.json"]
-"dex_supermimic.data.v8" = ["*.json", "reference/*.json", "reference/*.bvh", "reference/GMR_LICENSE", "reference/SOURCE_GEOMETRY.md", "reference/NVIDIA/LICENSE", "reference/NVIDIA/soma_retargeter/assets/soma/contact_processing/*.json"]
+"dex_supermimic.data.v8" = ["config.json", "lafan1_profile.json", "provenance.json", "reference/soma_surfaces.json", "reference/GMR_lafan_to_g1.json", "reference/soma_zero.bvh", "reference/extract_lafan_bind.c", "reference/GMR_LICENSE", "reference/SOURCE_GEOMETRY.md", "reference/NVIDIA/LICENSE", "reference/NVIDIA/soma_retargeter/assets/soma/contact_processing/soma_contact_config.json"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["*lafan1_surfaces.json", "*fbx_bind_geometry.json", "*.fbx", "*.FBX", "*.npz", "*.pkl", "*.pt", "*.ckpt", "*.pth", "*.safetensors", "*.onnx", "*.mjb", "*.mp4", "*.gif", "*.csv", "*.parquet", "*.jsonl", "*.usd", "*.usda", "*.usdc"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

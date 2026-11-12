@@ -27,5 +27,5 @@
     "reference": "GMR bvh_lafan1_to_g1 ground_height=0; not re-estimated from the motion",
     "measured": false
   },
-  "surface_profile": "reference/lafan1_surfaces.json"
+  "surface_profile": "local geometry via DEX_LAFAN_GEOMETRY or data/lafan1/local_geometry/lafan1_surfaces.json"
 }

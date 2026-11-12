@@ -45,5 +45,15 @@
     "verification": "111 tests pass after the sync; no motion library reconversion, no controller or hardware validation"
   },
   "support_acceptance_m": 0.001,
-  "historical_validation_scope": "102 tests without skips; 21 complete cached motions through new collision stage and full pose audit; no full-library reconversion"
+  "historical_validation_scope": "102 tests without skips; 21 complete cached motions through new collision stage and full pose audit; no full-library reconversion",
+  "distribution_patch": {
+    "date": "2026-11-12",
+    "package_version": "0.1.10",
+    "lafan_geometry": "User-local FBX extraction via dex-sm data prepare-lafan-geometry",
+    "default_path": "data/lafan1/local_geometry/lafan1_surfaces.json",
+    "path_environment": "DEX_LAFAN_GEOMETRY",
+    "source_fbx_sha256": "3d9349b5ec686248be6ab73ea3b918f486016a0d22e4b4b80d5418c8f3a608aa",
+    "identity": "Local geometry content SHA-256 participates in LAFAN conversion identity",
+    "historical_release_receipt": "V8_FINAL_RELEASE.json records the 0.1.9 algorithm baseline"
+  }
 }

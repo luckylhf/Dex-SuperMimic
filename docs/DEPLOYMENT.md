@@ -1,6 +1,6 @@
 # 部署与评估
 
-以下命令以本地已有的 12341 导出包和评估动作为例。当前公开仓库已包含机器人资产，但未包含 12341 权重、参考动作和评估清单，也未提供完整 Release 附件；运行前须按 [发布范围与本地材料](DISTRIBUTION.md) 准备权重、参考动作和评估清单。使用自有策略和动作时替换对应路径。
+以下命令以 12341 导出包和评测动作为例，运行前先按[材料说明](DISTRIBUTION.md)准备文件。使用自己的策略和动作时，替换对应路径。
 
 ## 输出与输入
 
@@ -40,7 +40,7 @@ ROS 节点在 localhost、独立 domain 215–232 和 `/supermimic_demo` 命名�
 dex-sm evaluate --checkpoint checkpoints/12341/ckpt_012341.pt --suite data/evaluation/suite.json --out runs/evaluation_12341 --history runs/history --ros-python "$ROS_PYTHON" --ros-setup /opt/ros/humble/setup.bash --domain 226 --render
 ```
 
-输出每段的原生 / ROS 指标、记录轨迹、两者逐元素一致性检查、汇总、历史最佳和 `comparison.json`。渲染只读已记录的真实闭环轨迹，终止后冻结并标注，不伪造后续跟踪。视频：参考 / 历史最佳 / 最新；相同策略 SHA 标明相同；镜头各自跟随根位置，并提供同尺度世界 XY 轨迹显示漂移。
+输出每段的原生 / ROS 指标、记录轨迹、两者逐元素一致性检查、汇总、历史最佳和 `comparison.json`。视频按记录的闭环轨迹渲染，终止后冻结画面并标注原因。视频：参考 / 历史最佳 / 最新；相同策略 SHA 标明相同；镜头各自跟随根位置，并提供同尺度世界 XY 轨迹显示漂移。
 
 历史最佳先比较是否完成；都未完成时，时长差大于 0.1 秒优先更长；否则按平均身体误差、最大根误差排序。不同参考 SHA、评测 profile、截断长度、模型或 ROS/native 模式不可混入同一 history。
 

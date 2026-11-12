@@ -1,8 +1,8 @@
 # 环境与安装
 
-训练目标平台为 Linux + NVIDIA CUDA；macOS 可阅读代码、准备文件，不承诺 GPU 训练或 ROS Humble 原生运行。
+训练使用 Linux + NVIDIA CUDA；CPU 动作转换也支持 macOS。ROS Humble 使用独立的 Linux 环境。
 
-以下命令安装代码和依赖，不会下载权重或动作数据；机器人资产已随仓库提供。当前没有完整基线 Release 附件，运行前需按 [发布范围与本地材料](DISTRIBUTION.md) 准备权重与动作。
+机器人资产已随仓库提供。数据和权重的准备方式见[材料说明](DISTRIBUTION.md)。
 
 | 组件 | 12341 实际环境 |
 |---|---|
@@ -31,13 +31,13 @@ export DEX_SUPERMIMIC_ROOT="$PWD"
 dex-sm check
 ```
 
-固定 mjlab 快照的声明要求 `torch>=2.14.0`，而基线实际运行于 `2.10.0+cu128`；因此显式以 `--no-deps` 安装该快照并单独安装所需依赖，避免解析器悄悄升级 PyTorch。这个组合属于已做运行验证的兼容组合，并非 mjlab 上游声明支持的依赖组合；`pip check` 可能报告这一已知冲突。训练环境从零重建尚须验证，不能把复用训练依赖的打包测试视为完整训练环境重建。纯 CPU 回放曾使用全新虚拟环境和维护者本地完整归档验证；该归档未公开上传，历史记录见 `VALIDATION.md`。
+固定 mjlab 快照的声明要求 `torch>=2.14.0`，而基线实际运行于 `2.10.0+cu128`；因此显式以 `--no-deps` 安装该快照并单独安装所需依赖，避免解析器悄悄升级 PyTorch。这个组合属于已做运行验证的兼容组合，并非 mjlab 上游声明支持的依赖组合；`pip check` 可能报告这一已知冲突。在目标机器上完成环境检查和训练短测后再启动长训。历史验证记录见 [VALIDATION.md](VALIDATION.md)。
 
 本项目保留 `instanttrack` 包名以维护来源和 checkpoint 兼容性。不要在同一环境再安装另一个 InstantTrack 实现。
 
 ## 转换环境
 
-内置 Dex V8 支持 BONES-SEED 的 SOMA Uniform BVH 和 LAFAN1 原始 BVH。求解使用 CPU NumPy / SciPy / MuJoCo / OSQP / Mink，不需要 CUDA、PyTorch 或 mjlab；macOS 也可做转换。训练/特征构建的依赖仍按上节安装。为保留历史回放契约，基础环境的版本固定项不因 V8 接入而修改。
+内置 Dex V8 支持 BONES-SEED 的 SOMA Uniform BVH 和 LAFAN1 原始 BVH。求解使用 CPU NumPy / SciPy / MuJoCo / OSQP / Mink，不需要 CUDA、PyTorch 或 mjlab；macOS 也可做转换。训练和特征构建的依赖按上节安装。
 
 ```bash
 python -m pip install -e '.[convert]'
@@ -48,9 +48,9 @@ dex-sm data convert --dataset bones_seed --manifest data/bones_seed/sources.json
 dex-sm data convert --dataset lafan1 --manifest data/lafan1/sources.jsonl --out data/lafan1/processed_v8_constrained --workers 1
 ```
 
-仓库已包含 `model.json`、`mjcf/dex_29.xml`、对应网格及 `urdf/dex_29.urdf`；转换器校验模型哈希与关节顺序。人体校准资源随本包打包，不依赖维护者机器上的校准路径；如使用外部资产，设置 `DEX_ASSETS`。无需设置历史 `DEX_GMR_ROOT`、`DEX_MIMIC_ROOT`，也不从外部同名脚本导入转换函数。
+仓库已包含 `model.json`、`mjcf/dex_29.xml`、对应网格及 `urdf/dex_29.urdf`，转换器校验模型哈希与关节顺序。SOMA 校准资源随包提供。首次转换 LAFAN1 前，按 [本地几何准备](../data/lafan1/README.md) 获取官方 FBX 和固定版本 ufbx 源码，执行 `dex-sm data prepare-lafan-geometry`。运行时使用 `data/lafan1/local_geometry/lafan1_surfaces.json`，或 `DEX_LAFAN_GEOMETRY` 指定的文件。外部机器人资产可用 `DEX_ASSETS` 指定。
 
-V8 的独立复验、训练 NPZ 协议、缓存迁移与验证环境见 [转换说明](RETARGET_V8.md)。安装不会自动下载数据；机器人资产已随仓库提供，也不会启动训练。
+V8 的独立复验、训练 NPZ 协议、缓存迁移与验证环境见 [转换说明](RETARGET_V8.md)。
 
 ## ROS 环境
 

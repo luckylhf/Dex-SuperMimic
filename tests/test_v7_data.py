@@ -65,9 +65,9 @@ def test_changed_mesh_invalidates_geometry_identity(tmp_path,monkeypatch):
     (tmp_path/'model.json').write_text(json.dumps(dict(model_sha256=sha(xml))))
     mesh=tmp_path/'meshes/shoe.stl';mesh.write_bytes(b'original shoe fixture')
     monkeypatch.setattr(retarget,'ASSETS',tmp_path)
-    old=retarget.conversion_identity('lafan1',include_runtime=False)
+    old=retarget.conversion_identity('bones_seed',include_runtime=False)
     mesh.write_bytes(b'changed shoe dimensions fixture')
-    new=retarget.conversion_identity('lafan1',include_runtime=False)
+    new=retarget.conversion_identity('bones_seed',include_runtime=False)
     assert old['fingerprint']!=new['fingerprint'] and old['mesh_sha256']!=new['mesh_sha256']
 
 
